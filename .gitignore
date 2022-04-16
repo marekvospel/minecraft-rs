@@ -1,0 +1,7 @@
+/target
+
+.idea/*
+!.idea/minecraft-rs.iml
+!.idea/codeStyles
+!.idea/inspectionProfiles
+!.idea/vcs.xml
