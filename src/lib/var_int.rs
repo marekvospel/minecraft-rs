@@ -3,9 +3,9 @@ use std::fmt::{Display, Formatter};
 use std::io::{Error, Read, Write};
 
 /*
-  Inspired by
-  https://github.com/luojia65/mc-varint
- */
+ Inspired by
+ https://github.com/luojia65/mc-varint
+*/
 
 // SEGMENT_BITS = 0x7F; 0b01111111
 // CONTINUE_BIT = 0x80; 0b10000000
@@ -15,8 +15,8 @@ const CONTINUE_BIT: u8 = 0b10000000;
 type Result<T> = std::result::Result<T, Error>;
 
 /*
-  VarInt Size
- */
+ VarInt Size
+*/
 
 pub trait VarIntSize {
   fn var_int_size(self) -> usize;
@@ -33,7 +33,7 @@ impl VarIntSize for i32 {
 
     for i in 0..5 {
       if temp == 0 {
-        break
+        break;
       }
 
       let bits = temp.to_le_bytes()[0];
@@ -60,7 +60,7 @@ impl VarIntSize for i64 {
 
     for i in 0..10 {
       if temp == 0 {
-        break
+        break;
       }
 
       let bits = temp.to_le_bytes()[0];
@@ -77,15 +77,17 @@ impl VarIntSize for i64 {
 }
 
 /*
-  Reading
- */
+ Reading
+*/
 pub trait VarIntRead {
   fn read_var_i32(&mut self) -> Result<i32>;
   fn read_var_i64(&mut self) -> Result<i64>;
 }
 
 impl<R> VarIntRead for R
-where R : Read {
+where
+  R: Read,
+{
   fn read_var_i32(&mut self) -> Result<i32> {
     let mut buf = [0u8];
     let mut value = 0;
@@ -95,7 +97,7 @@ where R : Read {
 
       value |= ((buf[0] & SEGMENTS_BITS) as i32) << 7 * i;
       if (buf[0] & CONTINUE_BIT) == 0 {
-        break
+        break;
       } else if i == 5 {
         // TODO: throw error
       }
@@ -113,7 +115,7 @@ where R : Read {
 
       value |= ((buf[0] & SEGMENTS_BITS) as i64) << 7 * i;
       if (buf[0] & CONTINUE_BIT) == 0 {
-        break
+        break;
       } else if i == 10 {
         // TODO: throw error
       }
@@ -129,7 +131,9 @@ pub trait WriteVarInt {
 }
 
 impl<W> WriteVarInt for W
-where W: Write {
+where
+  W: Write,
+{
   fn write_var_i32(&mut self, mut value: i32) -> Result<usize> {
     if value == 0 {
       self.write(&mut [0u8])?;
@@ -144,8 +148,8 @@ where W: Write {
       if value != 0 {
         buf[0] |= 0b1000_0000;
       }
-        cnt += self.write(&mut buf)?;
-      }
+      cnt += self.write(&mut buf)?;
+    }
 
     Ok(cnt)
   }
@@ -164,8 +168,8 @@ where W: Write {
       if value != 0 {
         buf[0] |= 0b1000_0000;
       }
-        cnt += self.write(&mut buf)?;
-      }
+      cnt += self.write(&mut buf)?;
+    }
 
     Ok(cnt)
   }

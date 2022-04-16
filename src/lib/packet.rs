@@ -1,7 +1,7 @@
-use std::io::{BufReader, BufWriter, Cursor, Error, Read, Write};
-use crate::{VarIntRead, VarIntSize};
-use crate::GameState::Login;
 use crate::lib::var_int::WriteVarInt;
+use crate::GameState::Login;
+use crate::{VarIntRead, VarIntSize};
+use std::io::{BufReader, BufWriter, Cursor, Error, Read, Write};
 
 type Result<T> = std::result::Result<T, Error>;
 
@@ -14,8 +14,9 @@ pub struct Packet {
 }
 
 fn read_packet_uncompressed<R>(reader: &mut R) -> Result<Packet>
-where R : Read {
-
+where
+  R: Read,
+{
   let length = reader.read_var_i32()?;
   let id = reader.read_var_i32()?;
   let mut data = vec![0u8; (length as usize) - id.var_int_size()];
@@ -25,12 +26,11 @@ where R : Read {
     length,
     id,
     data,
-    compressed: false
+    compressed: false,
   })
 }
 
 impl Packet {
-
   pub fn new(id: i32, data: Vec<u8>, compressed: bool) -> Self {
     Packet {
       length: (data.len() + id.var_int_size()) as i32,
@@ -41,12 +41,12 @@ impl Packet {
   }
 
   pub fn read<R>(reader: &mut R, compressed: bool) -> Result<Self>
-  where R : Read {
-
+  where
+    R: Read,
+  {
     if !compressed {
       return read_packet_uncompressed(reader);
     }
-
 
     todo!()
   }
@@ -64,7 +64,6 @@ impl Packet {
 
     bytes
   }
-
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -76,7 +75,6 @@ pub enum GameState {
 }
 
 impl From<i32> for GameState {
-
   fn from(value: i32) -> Self {
     use GameState::*;
     match value {
@@ -84,7 +82,7 @@ impl From<i32> for GameState {
       1 => Status,
       2 => Login,
       3 => Play,
-      _ => Handshaking
+      _ => Handshaking,
     }
   }
 }
@@ -122,14 +120,13 @@ impl TryFrom<&mut Packet> for HandshakeData {
 }
 
 pub struct StatusResponse {
-  response: serde_json::Value
+  response: serde_json::Value,
 }
 
 impl StatusResponse {
-
   pub fn new(response: &serde_json::Value) -> Self {
     StatusResponse {
-      response: response.clone()
+      response: response.clone(),
     }
   }
 
@@ -148,11 +145,10 @@ impl StatusResponse {
 
     bytes
   }
-
 }
 
 pub struct PingData {
-  pub payload: i64
+  pub payload: i64,
 }
 
 impl TryFrom<&mut Packet> for PingData {
@@ -165,14 +161,11 @@ impl TryFrom<&mut Packet> for PingData {
     reader.read_exact(&mut buf)?;
     let payload = i64::from_be_bytes(buf);
 
-    Ok(PingData {
-      payload
-    })
+    Ok(PingData { payload })
   }
 }
 
 impl PingData {
-
   pub fn to_bytes(self) -> Vec<u8> {
     let mut bytes = Vec::new();
 
@@ -186,5 +179,4 @@ impl PingData {
 
     bytes
   }
-
 }

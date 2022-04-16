@@ -1,0 +1,10 @@
+#!/bin/bash
+# https://github.com/1c3t3a/rust-socketio/blob/main/CONTRIBUTING.md
+set -e
+set -o pipefail
+
+cargo fmt --all -- --check || {
+  cargo fmt
+  printf "\nFormatted some files make sure to check them in.\n\n"
+  exit 1
+}
