@@ -1,5 +1,3 @@
-use std::any::TypeId;
-use std::fmt::{Display, Formatter};
 use std::io::{Error, Read, Write};
 
 /*

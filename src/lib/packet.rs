@@ -1,5 +1,4 @@
 use crate::lib::var_int::WriteVarInt;
-use crate::GameState::Login;
 use crate::{VarIntRead, VarIntSize};
 use std::io::{BufReader, BufWriter, Cursor, Error, Read, Write};
 
@@ -51,18 +50,18 @@ impl Packet {
     todo!()
   }
 
-  pub fn to_bytes(self) -> Vec<u8> {
+  pub fn to_bytes(self) -> Result<Vec<u8>> {
     let mut bytes = Vec::new();
 
     if !self.compressed {
       let mut writer = BufWriter::new(&mut bytes);
 
-      writer.write_var_i32(self.length);
-      writer.write_var_i32(self.id);
-      writer.write(&self.data);
+      writer.write_var_i32(self.length)?;
+      writer.write_var_i32(self.id)?;
+      writer.write(&self.data)?;
     }
 
-    bytes
+    Ok(bytes)
   }
 }
 
@@ -130,7 +129,7 @@ impl StatusResponse {
     }
   }
 
-  pub fn to_bytes(self) -> Vec<u8> {
+  pub fn to_bytes(self) -> Result<Vec<u8>> {
     let mut bytes = Vec::new();
 
     let response = self.response.to_string();
@@ -139,11 +138,11 @@ impl StatusResponse {
     {
       let mut writer = BufWriter::new(&mut bytes);
 
-      writer.write_var_i32(response_bytes.len() as i32);
-      writer.write(&response_bytes);
+      writer.write_var_i32(response_bytes.len() as i32)?;
+      writer.write(&response_bytes)?;
     }
 
-    bytes
+    Ok(bytes)
   }
 }
 
@@ -166,7 +165,7 @@ impl TryFrom<&mut Packet> for PingData {
 }
 
 impl PingData {
-  pub fn to_bytes(self) -> Vec<u8> {
+  pub fn to_bytes(self) -> Result<Vec<u8>> {
     let mut bytes = Vec::new();
 
     let payload = self.payload.to_be_bytes();
@@ -174,9 +173,9 @@ impl PingData {
     {
       let mut writer = BufWriter::new(&mut bytes);
 
-      writer.write(&payload);
+      writer.write(&payload)?;
     }
 
-    bytes
+    Ok(bytes)
   }
 }
