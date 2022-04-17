@@ -40,7 +40,7 @@ fn handle_connection(mut stream: TcpStream) -> Result<(), Error> {
     }
 
     if buf[0] == 0xfe && client_data.state == GameState::Handshaking {
-      handle_legacy_ping(&mut stream, &mut client_data);
+      handle_legacy_ping(&mut stream)?;
       continue;
     }
 
