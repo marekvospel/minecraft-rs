@@ -1,5 +1,6 @@
 extern crate core;
 
+use crate::handlers::handle_legacy_ping::handle_legacy_ping;
 use crate::lib::packet::{GameState, HandshakeData, Packet, PingData, StatusResponse};
 use crate::lib::var_int::{VarIntRead, VarIntSize};
 use std::io::Error;
@@ -32,9 +33,15 @@ fn handle_connection(mut stream: TcpStream) -> Result<(), Error> {
     state: GameState::Handshaking,
   };
   loop {
-    if stream.peek(&mut vec![0u8; 1])? <= 0 {
+    let mut buf = [0u8];
+    if stream.peek(&mut buf)? <= 0 {
       println!("Connection closed, exiting handle_connection");
       break;
+    }
+
+    if buf[0] == 0xfe && client_data.state == GameState::Handshaking {
+      handle_legacy_ping(&mut stream, &mut client_data);
+      continue;
     }
 
     let mut packet = Packet::read(&mut stream, false)?;
