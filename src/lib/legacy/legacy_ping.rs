@@ -1,4 +1,4 @@
-use std::io::{BufReader, Cursor, Error, ErrorKind, Read};
+use std::io::{BufReader, BufWriter, Cursor, Error, ErrorKind, Read, Write};
 use std::net::TcpStream;
 
 pub struct LegacyPing {
@@ -71,6 +71,52 @@ impl LegacyPing {
   }
 }
 
+pub struct LegacyPong {
+  pub protocol: i32,
+  pub version_name: String,
+  pub motd: String,
+  pub current_players: i128,
+  pub max_players: i128,
+}
+
+impl LegacyPong {
+  pub fn new(
+    protocol: i32,
+    version_name: String,
+    motd: String,
+    current_players: i128,
+    max_players: i128,
+  ) -> Self {
+    LegacyPong {
+      protocol,
+      version_name,
+      motd,
+      current_players,
+      max_players,
+    }
+  }
+
+  pub fn to_bytes(self) -> Result<Vec<u8>, Error> {
+    let mut bytes = Vec::new();
+
+    {
+      let mut writer = BufWriter::new(Cursor::new(&mut bytes));
+
+      let response = format!(
+        "§1\0{}\0{}\0{}\0{}\0{}",
+        self.protocol, self.version_name, self.motd, self.current_players, self.max_players
+      );
+      let response_bytes = response.encode_utf16().collect::<Vec<u16>>().to_u8()?;
+      let len = response.encode_utf16().collect::<Vec<u16>>().len() as i16;
+      writer.write(&[0xffu8])?;
+      writer.write(&len.to_be_bytes())?;
+      writer.write(&response_bytes)?;
+    }
+
+    Ok(bytes)
+  }
+}
+
 #[derive(Debug)]
 pub struct PingData {
   pub protocol: i8,
@@ -112,6 +158,24 @@ impl ToU16 for Vec<u8> {
       }
 
       output.push(u16::from_be_bytes(buf));
+    }
+
+    Ok(output)
+  }
+}
+
+trait ToU8 {
+  fn to_u8(self) -> Result<Vec<u8>, Error>;
+}
+
+impl ToU8 for Vec<u16> {
+  fn to_u8(self) -> Result<Vec<u8>, Error> {
+    let mut output = Vec::new();
+
+    for i in self {
+      let buf = i.to_be_bytes();
+      output.push(buf[0]);
+      output.push(buf[1]);
     }
 
     Ok(output)

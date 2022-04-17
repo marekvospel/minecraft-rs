@@ -1,5 +1,5 @@
-use crate::lib::legacy::legacy_ping::{LegacyPing, PingData};
-use std::io::{BufWriter, Cursor, Error, Write};
+use crate::lib::legacy::legacy_ping::{LegacyPing, LegacyPong, PingData};
+use std::io::{Error, Write};
 use std::net::Shutdown::Both;
 use std::net::TcpStream;
 
@@ -9,20 +9,17 @@ pub fn handle_legacy_ping(stream: &mut TcpStream) -> Result<(), Error> {
   let ping = LegacyPing::read(stream)?;
   println!("[0xFE] Received Legacy Ping");
 
-  let data: Option<PingData>;
+  let _data: Option<PingData>;
 
   if let Some(_) = ping.data {
-    data = Some(PingData::try_from(&ping)?);
+    // data = Some(PingData::try_from(&ping)?);
+    _data = None
   } else {
-    data = None;
+    _data = None;
   }
 
-  println!(
-    "{} {:#?} {:#?} {:#?} {:?}",
-    ping.payload, ping.packet_identifier, ping.host, ping.data, data
-  );
-
   /*
+  TODO: move into PingData impl
   let mut reader = BufReader::new(Cursor::new(&data));
 
   let mut buf = [0u8];
@@ -42,21 +39,14 @@ pub fn handle_legacy_ping(stream: &mut TcpStream) -> Result<(), Error> {
   let port = i32::from_be_bytes(buf);
   */
 
-  let mut packet = Vec::new();
-
-  {
-    let mut writer = BufWriter::new(Cursor::new(&mut packet));
-
-    let response = format!(
-      "§1\0{}\0{}\0{}\0{}\0{}",
-      127, "minecraft-rs", "Hello", 69, 420
-    );
-    let response_bytes = response.encode_utf16().collect::<Vec<u16>>().to_u8()?;
-    let len = response.encode_utf16().collect::<Vec<u16>>().len() as i16;
-    writer.write(&[0xffu8])?;
-    writer.write(&len.to_be_bytes())?;
-    writer.write(&response_bytes)?;
-  }
+  let packet = LegacyPong::new(
+    758,
+    "minecraft-rs".to_string(),
+    "Hello".to_string(),
+    69,
+    420,
+  )
+  .to_bytes()?;
 
   println!("[0xFE] Sending Legacy Ping Response");
   // TODO: gather more info about modern clients reading the legacy ping response
@@ -65,22 +55,4 @@ pub fn handle_legacy_ping(stream: &mut TcpStream) -> Result<(), Error> {
   stream.shutdown(Both)?;
 
   Ok(())
-}
-
-trait ToU8 {
-  fn to_u8(self) -> Result<Vec<u8>, Error>;
-}
-
-impl ToU8 for Vec<u16> {
-  fn to_u8(self) -> Result<Vec<u8>, Error> {
-    let mut output = Vec::new();
-
-    for i in self {
-      let buf = i.to_be_bytes();
-      output.push(buf[0]);
-      output.push(buf[1]);
-    }
-
-    Ok(output)
-  }
 }
