@@ -11,7 +11,7 @@ use crate::{ClientData, Packet};
 pub fn handle_status(
   packet: &mut Packet,
   stream: &mut TcpStream,
-  _client_data: &mut ClientData,
+  client_data: &mut ClientData,
 ) -> Result<()> {
   match packet.id {
     0 => {
@@ -33,8 +33,8 @@ pub fn handle_status(
 
       let response = response.to_bytes()?;
 
-      let packet = Packet::new(0, response, false);
-      let packet = packet.to_bytes()?;
+      let packet = Packet::new(0, response, client_data.compression_threshold);
+      let packet = packet.into_bytes()?;
 
       println!("[0x00] Sending Status Response");
       stream.write(&packet)?;
@@ -46,9 +46,9 @@ pub fn handle_status(
 
       let ping = PingData::try_from(packet)?;
 
-      let packet = Packet::new(1, ping.to_bytes()?, false);
+      let packet = Packet::new(1, ping.to_bytes()?, client_data.compression_threshold);
       println!("[0x01] Sending Pong");
-      stream.write(&packet.to_bytes()?)?;
+      stream.write(&packet.into_bytes()?)?;
 
       println!("Closing connection");
       stream.shutdown(Both)?;

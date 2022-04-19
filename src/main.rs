@@ -27,11 +27,13 @@ fn main() {
 
 pub struct ClientData {
   state: GameState,
+  compression_threshold: i32,
 }
 
 fn handle_connection(mut stream: TcpStream) -> Result<()> {
   let mut client_data = ClientData {
     state: GameState::Handshaking,
+    compression_threshold: -1,
   };
   loop {
     let mut buf = [0u8];
@@ -45,7 +47,7 @@ fn handle_connection(mut stream: TcpStream) -> Result<()> {
       continue;
     }
 
-    let mut packet = Packet::read(&mut stream, false)?;
+    let mut packet = Packet::read(&mut stream, client_data.compression_threshold)?;
 
     // println!("id: {}", packet.id);
     // println!("length: {}", packet.length);
