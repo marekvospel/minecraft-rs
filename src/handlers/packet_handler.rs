@@ -1,4 +1,5 @@
 use crate::handlers::handshake_handler::handle_handshake;
+use crate::handlers::login_handler::handle_login;
 use crate::handlers::status_handler::handle_status;
 use crate::{ClientData, GameState, Packet};
 use std::io::Error;
@@ -13,6 +14,7 @@ pub fn handle_packet(
   match client_data.state {
     Handshaking => handle_handshake(packet, client_data),
     Status => handle_status(packet, stream, client_data),
+    Login => handle_login(packet, stream, client_data),
     _ => Ok(()),
   }
 }
