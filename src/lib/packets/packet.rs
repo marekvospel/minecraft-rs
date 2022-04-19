@@ -1,8 +1,7 @@
+use crate::lib::error::Result;
 use crate::lib::var_int::WriteVarInt;
 use crate::{VarIntRead, VarIntSize};
-use std::io::{BufWriter, Error, Read, Write};
-
-type Result<T> = std::result::Result<T, Error>;
+use std::io::{BufWriter, Read, Write};
 
 #[derive(Debug)]
 pub struct Packet {

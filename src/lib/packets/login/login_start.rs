@@ -1,7 +1,6 @@
+use crate::lib::error::{Error, Result};
 use crate::{Packet, VarIntRead};
-use std::io::{BufReader, Cursor, Error, Read};
-
-type Result<T> = std::result::Result<T, Error>;
+use std::io::{BufReader, Cursor, Read};
 
 pub struct LoginStartData {
   pub username: String,

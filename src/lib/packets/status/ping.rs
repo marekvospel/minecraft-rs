@@ -1,7 +1,6 @@
+use crate::lib::error::Result;
 use crate::Packet;
-use std::io::{BufReader, BufWriter, Cursor, Error, Read, Write};
-
-type Result<T> = std::result::Result<T, Error>;
+use std::io::{BufReader, BufWriter, Cursor, Read, Write};
 
 pub struct PingData {
   pub payload: i64,

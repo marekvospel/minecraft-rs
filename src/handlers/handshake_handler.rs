@@ -1,9 +1,8 @@
-use std::io::Error;
-
+use crate::lib::error::Result;
 use crate::lib::packets::handshake::HandshakeData;
 use crate::{ClientData, Packet};
 
-pub fn handle_handshake(packet: &mut Packet, client_data: &mut ClientData) -> Result<(), Error> {
+pub fn handle_handshake(packet: &mut Packet, client_data: &mut ClientData) -> Result<()> {
   match packet.id {
     0 => {
       println!("[0x00] Received Handshake");

@@ -1,4 +1,7 @@
-use std::io::{Error, Read, Write};
+use crate::lib::error::Error::VarIntTooBig;
+use std::io::{Read, Write};
+
+use crate::lib::error::Result;
 
 /*
  Inspired by
@@ -9,8 +12,6 @@ use std::io::{Error, Read, Write};
 // CONTINUE_BIT = 0x80; 0b10000000
 const SEGMENTS_BITS: u8 = 0b01111111;
 const CONTINUE_BIT: u8 = 0b10000000;
-
-type Result<T> = std::result::Result<T, Error>;
 
 /*
  VarInt Size
@@ -97,7 +98,7 @@ where
       if (buf[0] & CONTINUE_BIT) == 0 {
         break;
       } else if i == 5 {
-        // TODO: throw error
+        return Err(VarIntTooBig());
       }
     }
 
@@ -115,7 +116,7 @@ where
       if (buf[0] & CONTINUE_BIT) == 0 {
         break;
       } else if i == 10 {
-        // TODO: throw error
+        return Err(VarIntTooBig());
       }
     }
 

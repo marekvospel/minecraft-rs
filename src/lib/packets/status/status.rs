@@ -1,7 +1,6 @@
+use crate::lib::error::Result;
 use crate::lib::var_int::WriteVarInt;
-use std::io::{BufWriter, Error, Write};
-
-type Result<T> = std::result::Result<T, Error>;
+use std::io::{BufWriter, Write};
 
 pub struct StatusResponse {
   response: serde_json::Value,

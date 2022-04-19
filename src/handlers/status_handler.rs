@@ -1,8 +1,9 @@
 use serde_json::json;
-use std::io::{Error, Write};
+use std::io::Write;
 use std::net::Shutdown::Both;
 use std::net::TcpStream;
 
+use crate::lib::error::Result;
 use crate::lib::packets::status::ping::PingData;
 use crate::lib::packets::status::status::StatusResponse;
 use crate::{ClientData, Packet};
@@ -11,7 +12,7 @@ pub fn handle_status(
   packet: &mut Packet,
   stream: &mut TcpStream,
   _client_data: &mut ClientData,
-) -> Result<(), Error> {
+) -> Result<()> {
   match packet.id {
     0 => {
       println!("[0x00] Received Status Request");

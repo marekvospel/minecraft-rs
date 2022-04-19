@@ -1,3 +1,4 @@
+use crate::lib::error::Result;
 use crate::lib::var_int::WriteVarInt;
 use std::io::{BufWriter, Write};
 
@@ -10,7 +11,7 @@ impl DisconnectData {
     DisconnectData { reason }
   }
 
-  pub fn to_bytes(self) -> Vec<u8> {
+  pub fn to_bytes(self) -> Result<Vec<u8>> {
     let mut bytes = Vec::new();
 
     {
@@ -18,10 +19,10 @@ impl DisconnectData {
 
       let reason = self.reason.to_string().into_bytes();
 
-      writer.write_var_i32(reason.len() as i32);
-      writer.write(&reason);
+      writer.write_var_i32(reason.len() as i32)?;
+      writer.write(&reason)?;
     }
 
-    bytes
+    Ok(bytes)
   }
 }

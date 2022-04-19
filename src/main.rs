@@ -3,11 +3,11 @@ extern crate core;
 use crate::handlers::handle_legacy_ping::handle_legacy_ping;
 use crate::lib::var_int::{VarIntRead, VarIntSize};
 use lib::packets::packet::Packet;
-use std::io::Error;
 use std::net::{TcpListener, TcpStream};
 use std::thread;
 
 use crate::handlers::packet_handler::handle_packet;
+use crate::lib::error::Result;
 use crate::lib::game_state::GameState;
 
 pub mod handlers;
@@ -29,7 +29,7 @@ pub struct ClientData {
   state: GameState,
 }
 
-fn handle_connection(mut stream: TcpStream) -> Result<(), Error> {
+fn handle_connection(mut stream: TcpStream) -> Result<()> {
   let mut client_data = ClientData {
     state: GameState::Handshaking,
   };

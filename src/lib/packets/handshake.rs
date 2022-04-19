@@ -9,7 +9,7 @@ pub struct HandshakeData {
 }
 
 impl TryFrom<&mut Packet> for HandshakeData {
-  type Error = std::io::Error;
+  type Error = crate::lib::error::Error;
 
   fn try_from(packet: &mut Packet) -> std::result::Result<Self, Self::Error> {
     let mut reader = BufReader::new(Cursor::new(&packet.data));
