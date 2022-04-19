@@ -30,7 +30,7 @@ impl Packet {
   {
     let length = reader.read_var_i32()?;
 
-    return if compression_threshold <= 0 {
+    return if compression_threshold < 0 {
       Self::read_packet_uncompressed(reader, length, compression_threshold)
     } else {
       Self::read_packet_compressed(reader, length, compression_threshold)
@@ -65,26 +65,29 @@ impl Packet {
   where
     R: Read,
   {
-    let uncompressed_length = reader.read_var_i32()?;
+    let mut data_length = reader.read_var_i32()?;
 
-    let mut data = vec![0u8; (length as usize) - uncompressed_length.var_int_size()];
+    let mut data = vec![0u8; (length as usize) - data_length.var_int_size()];
     reader.read_exact(&mut data)?;
 
     let mut uncompressed = Vec::new();
 
-    {
+    if data_length != 0 {
       let mut decoder = ZlibDecoder::new(Cursor::new(data));
       decoder.read_to_end(&mut uncompressed)?;
+    } else {
+      uncompressed = data;
+      data_length = length - data_length.var_int_size() as i32;
     }
 
     let mut reader = BufReader::new(Cursor::new(uncompressed));
 
     let id = reader.read_var_i32()?;
-    let mut data = vec![0u8; uncompressed_length as usize - id.var_int_size()];
+    let mut data = vec![0u8; data_length as usize - id.var_int_size()];
     reader.read_exact(&mut data)?;
 
     Ok(Packet {
-      length: uncompressed_length,
+      length: data_length,
       id,
       data,
       compression_threshold,
@@ -94,7 +97,7 @@ impl Packet {
   pub fn into_bytes(self) -> Result<Vec<u8>> {
     let mut bytes = Vec::new();
 
-    if self.compression_threshold < 0 || self.compression_threshold > self.length {
+    if self.compression_threshold < 0 {
       let mut writer = BufWriter::new(&mut bytes);
 
       writer.write_var_i32(self.length)?;
@@ -111,10 +114,12 @@ impl Packet {
         writer.write(&self.data)?;
       }
 
-      {
+      if self.compression_threshold < self.length && self.compression_threshold != 0 {
         let mut encoder = ZlibEncoder::new(Vec::new(), Compression::default());
         encoder.write(&uncompressed)?;
         compressed = encoder.finish()?;
+      } else {
+        compressed = uncompressed
       }
 
       {
@@ -123,7 +128,11 @@ impl Packet {
         let len = compressed.len() as i32;
 
         writer.write_var_i32(len.var_int_size() as i32 + len)?;
-        writer.write_var_i32(self.length)?;
+        if self.compression_threshold < self.length && self.compression_threshold != 0 {
+          writer.write_var_i32(self.length)?;
+        } else {
+          writer.write_var_i32(0)?;
+        }
         writer.write(&compressed)?;
       }
     }
