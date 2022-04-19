@@ -1,3 +1,4 @@
 - [X] 0.1.0 Simple server list ping implementation
 - [X] 0.2.0 Legacy ping support? Better project structure
-- [ ] 0.3.0 Add login logic
+- [ ] 0.3.0 Add login logic, better error handling
+- [ ] 0.4.0 Compression, Minecraft.net auth?
