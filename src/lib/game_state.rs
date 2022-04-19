@@ -1,0 +1,20 @@
+#[derive(Debug, Eq, PartialEq)]
+pub enum GameState {
+  Handshaking = 0,
+  Status = 1,
+  Login = 2,
+  Play = 3,
+}
+
+impl From<i32> for GameState {
+  fn from(value: i32) -> Self {
+    use GameState::*;
+    match value {
+      0 => Handshaking,
+      1 => Status,
+      2 => Login,
+      3 => Play,
+      _ => Handshaking,
+    }
+  }
+}

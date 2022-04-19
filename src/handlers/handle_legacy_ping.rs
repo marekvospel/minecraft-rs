@@ -1,4 +1,4 @@
-use crate::lib::legacy::legacy_ping::{LegacyPing, LegacyPong, PingData};
+use crate::lib::legacy::legacy_ping::{LegacyPing, LegacyPingData, LegacyPong};
 use std::io::{Error, Write};
 use std::net::Shutdown::Both;
 use std::net::TcpStream;
@@ -9,7 +9,7 @@ pub fn handle_legacy_ping(stream: &mut TcpStream) -> Result<(), Error> {
   let ping = LegacyPing::read(stream)?;
   println!("[0xFE] Received Legacy Ping");
 
-  let _data: Option<PingData>;
+  let _data: Option<LegacyPingData>;
 
   if let Some(_) = ping.data {
     // data = Some(PingData::try_from(&ping)?);
@@ -19,7 +19,7 @@ pub fn handle_legacy_ping(stream: &mut TcpStream) -> Result<(), Error> {
   }
 
   /*
-  TODO: move into PingData impl
+  TODO: move into LegacyPingData impl
   let mut reader = BufReader::new(Cursor::new(&data));
 
   let mut buf = [0u8];

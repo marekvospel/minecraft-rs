@@ -1,13 +1,14 @@
 extern crate core;
 
 use crate::handlers::handle_legacy_ping::handle_legacy_ping;
-use crate::lib::packet::{GameState, HandshakeData, Packet, PingData, StatusResponse};
 use crate::lib::var_int::{VarIntRead, VarIntSize};
+use lib::packets::packet::Packet;
 use std::io::Error;
 use std::net::{TcpListener, TcpStream};
 use std::thread;
 
 use crate::handlers::packet_handler::handle_packet;
+use crate::lib::game_state::GameState;
 
 pub mod handlers;
 pub mod lib;

@@ -3,7 +3,9 @@ use std::io::{Error, Write};
 use std::net::Shutdown::Both;
 use std::net::TcpStream;
 
-use crate::{ClientData, Packet, PingData, StatusResponse};
+use crate::lib::packets::status::ping::PingData;
+use crate::lib::packets::status::status::StatusResponse;
+use crate::{ClientData, Packet};
 
 pub fn handle_status(
   packet: &mut Packet,

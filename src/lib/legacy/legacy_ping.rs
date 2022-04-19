@@ -118,18 +118,18 @@ impl LegacyPong {
 }
 
 #[derive(Debug)]
-pub struct PingData {
+pub struct LegacyPingData {
   pub protocol: i8,
   pub hostname: String,
   pub port: i32,
 }
 
-impl TryFrom<&LegacyPing> for PingData {
+impl TryFrom<&LegacyPing> for LegacyPingData {
   type Error = Error;
 
   fn try_from(_ping: &LegacyPing) -> Result<Self, Self::Error> {
     // TODO: parse LegacyPing.data to get payload, hostname and port
-    Ok(PingData {
+    Ok(LegacyPingData {
       protocol: 0,
       hostname: "".to_string(),
       port: 0,
