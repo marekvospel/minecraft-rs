@@ -1,10 +1,10 @@
 use crate::lib::error::Result;
 use crate::lib::var_int::WriteVarInt;
 use crate::{VarIntRead, VarIntSize};
-use flate2::read::ZlibDecoder;
-use flate2::write::ZlibEncoder;
-use flate2::Compression;
 use std::io::{BufReader, BufWriter, Cursor, Read, Write};
+
+#[cfg(feature = "compression")]
+use flate2::{read, write, Compression};
 
 #[derive(Debug)]
 pub struct Packet {
@@ -72,9 +72,12 @@ impl Packet {
 
     let mut uncompressed = Vec::new();
 
-    if data_length != 0 {
-      let mut decoder = ZlibDecoder::new(Cursor::new(data));
-      decoder.read_to_end(&mut uncompressed)?;
+    if data_length != 0 && cfg!(feature = "compression") {
+      #[cfg(feature = "compression")]
+      {
+        let mut decoder = read::ZlibDecoder::new(Cursor::new(data));
+        decoder.read_to_end(&mut uncompressed)?;
+      }
     } else {
       uncompressed = data;
       data_length = length - data_length.var_int_size() as i32;
@@ -105,7 +108,9 @@ impl Packet {
       writer.write(&self.data)?;
     } else {
       let mut uncompressed = Vec::new();
-      let compressed: Vec<u8>;
+      // Allow unused mut, as it is required if "compression" feature is enabled
+      #[allow(unused_mut)]
+      let mut compressed: Vec<u8>;
 
       {
         let mut writer = BufWriter::new(&mut uncompressed);
@@ -114,10 +119,22 @@ impl Packet {
         writer.write(&self.data)?;
       }
 
-      if self.compression_threshold < self.length && self.compression_threshold != 0 {
-        let mut encoder = ZlibEncoder::new(Vec::new(), Compression::default());
-        encoder.write(&uncompressed)?;
-        compressed = encoder.finish()?;
+      if self.compression_threshold < self.length
+        && self.compression_threshold != 0
+        && cfg!(feature = "compression")
+      {
+        // Allow unused assignments, as it is required if compression feature is disabled (borrow of possibly-uninitialized variable compiler error)
+        #[allow(unused_assignments)]
+        {
+          compressed = Vec::new();
+        }
+
+        #[cfg(feature = "compression")]
+        {
+          let mut encoder = write::ZlibEncoder::new(Vec::new(), Compression::default());
+          encoder.write(&uncompressed)?;
+          compressed = encoder.finish()?;
+        }
       } else {
         compressed = uncompressed
       }
@@ -128,7 +145,10 @@ impl Packet {
         let len = compressed.len() as i32;
 
         writer.write_var_i32(len.var_int_size() as i32 + len)?;
-        if self.compression_threshold < self.length && self.compression_threshold != 0 {
+        if self.compression_threshold < self.length
+          && self.compression_threshold != 0
+          && cfg!(feature = "compression")
+        {
           writer.write_var_i32(self.length)?;
         } else {
           writer.write_var_i32(0)?;
