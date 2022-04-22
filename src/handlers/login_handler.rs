@@ -1,9 +1,9 @@
 use crate::lib::error::Result;
 use crate::lib::packets::login::login_start::LoginStartData;
 use crate::lib::packets::login::login_success::LoginSuccessData;
-use crate::lib::var_int::WriteVarInt;
+use crate::lib::packets::login::set_compression::SetCompressionData;
 use crate::{ClientData, GameState, Packet};
-use std::io::{BufWriter, Write};
+use std::io::Write;
 use std::net::TcpStream;
 
 pub fn handle_login(
@@ -27,19 +27,12 @@ pub fn handle_login(
       client_data.state = GameState::Play;
 
       // Set compression
-      let mut data = Vec::new();
-
-      {
-        let mut writer = BufWriter::new(&mut data);
-
-        writer.write_var_i32(1)?;
-      }
-
+      let data = SetCompressionData::new(1).to_bytes()?;
       let packet = Packet::new(0x03, data, client_data.compression_threshold);
-
       client_data.compression_threshold = 1;
       stream.write(&packet.into_bytes()?)?;
 
+      // Send success
       let data = LoginSuccessData::new(0, login.username);
       let packet = Packet::new(2, data.to_bytes()?, client_data.compression_threshold);
       stream.write(&packet.into_bytes()?)?;

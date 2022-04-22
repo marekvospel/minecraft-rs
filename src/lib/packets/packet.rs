@@ -108,9 +108,7 @@ impl Packet {
       writer.write(&self.data)?;
     } else {
       let mut uncompressed = Vec::new();
-      // Allow unused mut, as it is required if "compression" feature is enabled
-      #[allow(unused_mut)]
-      let mut compressed: Vec<u8>;
+      let compressed: Vec<u8>;
 
       {
         let mut writer = BufWriter::new(&mut uncompressed);
@@ -119,22 +117,16 @@ impl Packet {
         writer.write(&self.data)?;
       }
 
-      if self.compression_threshold < self.length
-        && self.compression_threshold != 0
-        && cfg!(feature = "compression")
+      #[cfg(not(feature = "compression"))]
       {
-        // Allow unused assignments, as it is required if compression feature is disabled (borrow of possibly-uninitialized variable compiler error)
-        #[allow(unused_assignments)]
-        {
-          compressed = Vec::new();
-        }
+        compressed = uncompressed
+      }
 
-        #[cfg(feature = "compression")]
-        {
-          let mut encoder = write::ZlibEncoder::new(Vec::new(), Compression::default());
-          encoder.write(&uncompressed)?;
-          compressed = encoder.finish()?;
-        }
+      #[cfg(feature = "compression")]
+      if self.compression_threshold < self.length && self.compression_threshold != 0 {
+        let mut encoder = write::ZlibEncoder::new(Vec::new(), Compression::default());
+        encoder.write(&uncompressed)?;
+        compressed = encoder.finish()?;
       } else {
         compressed = uncompressed
       }
