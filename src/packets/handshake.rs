@@ -1,4 +1,6 @@
-use crate::{GameState, Packet, VarIntRead};
+use crate::game_state::GameState;
+use crate::packets::packet::Packet;
+use crate::var_int::VarIntRead;
 use std::io::{BufReader, Cursor, Read};
 
 pub struct HandshakeData {
@@ -9,7 +11,7 @@ pub struct HandshakeData {
 }
 
 impl TryFrom<&mut Packet> for HandshakeData {
-  type Error = crate::lib::error::Error;
+  type Error = crate::error::Error;
 
   fn try_from(packet: &mut Packet) -> std::result::Result<Self, Self::Error> {
     let mut reader = BufReader::new(Cursor::new(&packet.data));

@@ -1,5 +1,5 @@
-use crate::lib::error::Result;
-use crate::lib::var_int::WriteVarInt;
+use crate::var_int::WriteVarInt;
+use crate::Result;
 use std::io::{BufWriter, Write};
 
 // TODO: replace u128 with Uuid

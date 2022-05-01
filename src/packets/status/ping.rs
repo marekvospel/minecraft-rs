@@ -1,5 +1,5 @@
-use crate::lib::error::Result;
-use crate::Packet;
+use crate::error::Result;
+use crate::packets::packet::Packet;
 use std::io::{BufReader, BufWriter, Cursor, Read, Write};
 
 pub struct PingData {

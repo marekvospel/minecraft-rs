@@ -1,17 +1,12 @@
-extern crate core;
-
-use crate::handlers::handle_legacy_ping::handle_legacy_ping;
-use crate::lib::var_int::{VarIntRead, VarIntSize};
-use lib::packets::packet::Packet;
+use crate::client::handlers::handle_legacy_ping::handle_legacy_ping;
+use crate::client::handlers::packet_handler::handle_packet;
+use minecraft_rs::error::Error;
+use minecraft_rs::game_state::GameState;
+use minecraft_rs::packets::packet::Packet;
 use std::net::{TcpListener, TcpStream};
 use std::thread;
 
-use crate::handlers::packet_handler::handle_packet;
-use crate::lib::error::Result;
-use crate::lib::game_state::GameState;
-
-pub mod handlers;
-pub mod lib;
+pub mod client;
 
 fn main() {
   let listener = TcpListener::bind("127.0.0.1:3000").expect("Yikes, could not bind 3000");
@@ -25,7 +20,7 @@ fn main() {
   }
 }
 
-pub struct ClientData {
+pub(crate) struct ClientData {
   state: GameState,
   compression_threshold: i32,
 }
@@ -57,3 +52,5 @@ fn handle_connection(mut stream: TcpStream) -> Result<()> {
 
   Ok(())
 }
+
+pub(crate) type Result<T> = std::result::Result<T, Error>;

@@ -1,7 +1,7 @@
-use crate::lib::error::Error::VarIntTooBig;
+use crate::error::Error::VarIntTooBig;
 use std::io::{Read, Write};
 
-use crate::lib::error::Result;
+use crate::Result;
 
 /*
  Inspired by

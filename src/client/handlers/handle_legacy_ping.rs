@@ -1,4 +1,4 @@
-use crate::lib::legacy::legacy_ping::{LegacyPing, LegacyPingData, LegacyPong};
+use minecraft_rs::legacy::legacy_ping::{LegacyPing, LegacyPingData, LegacyPong};
 use std::io::{Error, Write};
 use std::net::Shutdown::Both;
 use std::net::TcpStream;

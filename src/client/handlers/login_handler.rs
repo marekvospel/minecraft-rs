@@ -1,12 +1,14 @@
-use crate::lib::error::Result;
-use crate::lib::packets::login::login_start::LoginStartData;
-use crate::lib::packets::login::login_success::LoginSuccessData;
-use crate::lib::packets::login::set_compression::SetCompressionData;
-use crate::{ClientData, GameState, Packet};
+use crate::ClientData;
+use crate::Result;
+use minecraft_rs::game_state::GameState;
+use minecraft_rs::packets::login::login_start::LoginStartData;
+use minecraft_rs::packets::login::login_success::LoginSuccessData;
+use minecraft_rs::packets::login::set_compression::SetCompressionData;
+use minecraft_rs::packets::packet::Packet;
 use std::io::Write;
 use std::net::TcpStream;
 
-pub fn handle_login(
+pub(crate) fn handle_login(
   packet: &mut Packet,
   stream: &mut TcpStream,
   client_data: &mut ClientData,

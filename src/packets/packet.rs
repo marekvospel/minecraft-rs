@@ -1,12 +1,11 @@
-use crate::lib::error::Result;
-use crate::lib::var_int::WriteVarInt;
-use crate::{VarIntRead, VarIntSize};
+use crate::error::Result;
+use crate::var_int::{VarIntRead, VarIntSize, WriteVarInt};
 use std::io::{BufReader, BufWriter, Cursor, Read, Write};
 
 #[cfg(feature = "compression")]
 use flate2::{read, write, Compression};
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub struct Packet {
   pub length: i32,
   pub id: i32,

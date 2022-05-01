@@ -1,11 +1,11 @@
-use crate::handlers::handshake_handler::handle_handshake;
-use crate::handlers::login_handler::handle_login;
-use crate::handlers::status_handler::handle_status;
-use crate::lib::error::Result;
-use crate::{ClientData, GameState, Packet};
+use crate::client::handlers::handshake_handler::handle_handshake;
+use crate::client::handlers::login_handler::handle_login;
+use crate::client::handlers::status_handler::handle_status;
+use crate::{ClientData, GameState, Result};
+use minecraft_rs::packets::packet::Packet;
 use std::net::TcpStream;
 
-pub fn handle_packet(
+pub(crate) fn handle_packet(
   packet: &mut Packet,
   stream: &mut TcpStream,
   client_data: &mut ClientData,

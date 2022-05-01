@@ -1,5 +1,7 @@
-use crate::lib::error::{Error, Result};
-use crate::{Packet, VarIntRead};
+use crate::error::Error;
+use crate::packets::packet::Packet;
+use crate::var_int::VarIntRead;
+use crate::Result;
 use std::io::{BufReader, Cursor, Read};
 
 pub struct LoginStartData {

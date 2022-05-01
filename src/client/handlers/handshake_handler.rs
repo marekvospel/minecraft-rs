@@ -1,8 +1,8 @@
-use crate::lib::error::Result;
-use crate::lib::packets::handshake::HandshakeData;
+use crate::Result;
 use crate::{ClientData, Packet};
+use minecraft_rs::packets::handshake::HandshakeData;
 
-pub fn handle_handshake(packet: &mut Packet, client_data: &mut ClientData) -> Result<()> {
+pub(crate) fn handle_handshake(packet: &mut Packet, client_data: &mut ClientData) -> Result<()> {
   match packet.id {
     0 => {
       println!("[0x00] Received Handshake");

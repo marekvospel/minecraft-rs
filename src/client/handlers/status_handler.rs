@@ -3,12 +3,12 @@ use std::io::Write;
 use std::net::Shutdown::Both;
 use std::net::TcpStream;
 
-use crate::lib::error::Result;
-use crate::lib::packets::status::ping::PingData;
-use crate::lib::packets::status::status::StatusResponse;
+use crate::Result;
 use crate::{ClientData, Packet};
+use minecraft_rs::packets::status::ping::PingData;
+use minecraft_rs::packets::status::status::StatusResponse;
 
-pub fn handle_status(
+pub(crate) fn handle_status(
   packet: &mut Packet,
   stream: &mut TcpStream,
   client_data: &mut ClientData,
