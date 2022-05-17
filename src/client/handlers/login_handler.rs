@@ -72,19 +72,43 @@ fn send_login_data(stream: &mut TcpStream, client_data: &ClientData) -> Result<(
     writer.write(&0u8.to_be_bytes())?;
 
     // Worlds array (only 1)
-    writer.write_var_i32(1);
+    writer.write_var_i32(2)?;
     let str = "minecraft:overworld".to_string().into_bytes();
-    writer.write_var_i32(str.len() as i32);
-    writer.write(&str);
+    writer.write_var_i32(str.len() as i32)?;
+    writer.write(&str)?;
+    let str = "minecraft:the_nether".to_string().into_bytes();
+    writer.write_var_i32(str.len() as i32)?;
+    writer.write(&str)?;
+
+    let dimension = nbt::Value::Compound(HashMap::from_iter([
+      ("piglin_safe".to_string(), nbt::Value::Byte(1)),
+      ("natural".to_string(), nbt::Value::Byte(1)),
+      ("ambient_light".to_string(), nbt::Value::Float(1.0)),
+      (
+        "infiniburn".to_string(),
+        nbt::Value::String("#minecraft:infiniburn_overworld".to_string()),
+      ),
+      ("respawn_anchor_works".to_string(), nbt::Value::Byte(1)),
+      ("has_skylight".to_string(), nbt::Value::Byte(1)),
+      ("bed_works".to_string(), nbt::Value::Byte(1)),
+      (
+        "effects".to_string(),
+        nbt::Value::String("minecraft:overworld".to_string()),
+      ),
+      ("has_raids".to_string(), nbt::Value::Byte(0)),
+      ("min_y".to_string(), nbt::Value::Int(0)),
+      ("height".to_string(), nbt::Value::Int(256)),
+      ("logical_height".to_string(), nbt::Value::Int(256)),
+      ("coordinate_scale".to_string(), nbt::Value::Double(1.0)),
+      ("ultrawarm".to_string(), nbt::Value::Byte(0)),
+      ("has_ceiling".to_string(), nbt::Value::Byte(0)),
+    ]));
 
     let nbt = nbt::Value::Compound(HashMap::from_iter([
       (
         "minecraft:dimension_type".to_string(),
         nbt::Value::Compound(HashMap::from_iter([
-          (
-            "type".to_string(),
-            nbt::Value::String("minecraft:dimension_type".to_string()),
-          ),
+          ("type".to_string(), nbt::Value::String("type".to_string())),
           (
             "value".to_string(),
             nbt::Value::List(vec![nbt::Value::Compound(HashMap::from_iter([
@@ -93,160 +117,41 @@ fn send_login_data(stream: &mut TcpStream, client_data: &ClientData) -> Result<(
                 nbt::Value::String("minecraft:overworld".to_string()),
               ),
               ("id".to_string(), nbt::Value::Int(0)),
-              (
-                "element".to_string(),
-                nbt::Value::Compound(HashMap::from_iter([
-                  ("piglin_safe".to_string(), nbt::Value::Byte(1)),
-                  ("natural".to_string(), nbt::Value::Byte(1)),
-                  ("ambient_light".to_string(), nbt::Value::Float(1.0)),
-                  (
-                    "infiniburn".to_string(),
-                    nbt::Value::String("#minecraft:infiniburn_overworld".to_string()),
-                  ),
-                  ("respawn_anchor_works".to_string(), nbt::Value::Byte(1)),
-                  ("has_skylight".to_string(), nbt::Value::Byte(1)),
-                  ("bed_works".to_string(), nbt::Value::Byte(1)),
-                  (
-                    "effects".to_string(),
-                    nbt::Value::String("minecraft:overworld".to_string()),
-                  ),
-                  ("has_raids".to_string(), nbt::Value::Byte(0)),
-                  ("min_y".to_string(), nbt::Value::Int(0)),
-                  ("height".to_string(), nbt::Value::Int(256)),
-                  ("logical_height".to_string(), nbt::Value::Int(256)),
-                  ("coordinate_scale".to_string(), nbt::Value::Double(1.0)),
-                  ("ultrawarm".to_string(), nbt::Value::Byte(0)),
-                  ("has_eiling".to_string(), nbt::Value::Byte(0)),
-                ])),
-              ),
+              ("element".to_string(), dimension.clone()),
             ]))]),
           ),
         ])),
       ),
       (
         "minecraft:worldgen/biome".to_string(),
-        nbt::Value::Compound(HashMap::from_iter([
-          (
-            "type".to_string(),
-            nbt::Value::String("minecraft:worldgen/biome".to_string()),
-          ),
-          (
-            "value".to_string(),
-            nbt::Value::List(vec![nbt::Value::Compound(HashMap::from_iter([
-              (
-                "name".to_string(),
-                nbt::Value::String("minecraft:the_void".to_string()),
-              ),
-              ("id".to_string(), nbt::Value::Int(0)),
-              (
-                "element".to_string(),
-                nbt::Value::Compound(HashMap::from_iter([
-                  (
-                    "precipitation".to_string(),
-                    nbt::Value::String("none".to_string()),
-                  ),
-                  ("temperature".to_string(), nbt::Value::Float(0.8)),
-                  ("scale".to_string(), nbt::Value::Float(1.0)),
-                  ("downfall".to_string(), nbt::Value::Float(0.5)),
-                  (
-                    "category".to_string(),
-                    nbt::Value::String("plains".to_string()),
-                  ),
-                  (
-                    "effects".to_string(),
-                    nbt::Value::Compound(HashMap::from_iter([
-                      ("sky_color".to_string(), nbt::Value::Int(7907327)),
-                      ("water_fog_color".to_string(), nbt::Value::Int(329011)),
-                      ("water_color".to_string(), nbt::Value::Int(4159204)),
-                      ("fog_color".to_string(), nbt::Value::Int(12638463)),
-                      (
-                        "mood_sound".to_string(),
-                        nbt::Value::Compound(HashMap::from_iter([
-                          ("block_search_extent".to_string(), nbt::Value::Int(8)),
-                          ("offset".to_string(), nbt::Value::Double(2.0)),
-                          (
-                            "sound".to_string(),
-                            nbt::Value::String("minecraft:ambient.cave".to_string()),
-                          ),
-                          ("tick_delay".to_string(), nbt::Value::Int(6000)),
-                        ])),
-                      ),
-                    ])),
-                  ),
-                ])),
-              ),
-            ]))]),
-          ),
-        ])),
+        nbt::Value::Compound(HashMap::from_iter([])),
       ),
     ]));
-
-    println!("{:#?}", nbt);
 
     if let Err(e) = nbt.to_writer(&mut writer) {
       println!("Hi")
     }
 
-    let nbt = nbt::Value::Compound(HashMap::from_iter([
-      (
-        "name".to_string(),
-        nbt::Value::String("minecraft:the_void".to_string()),
-      ),
-      ("id".to_string(), nbt::Value::Int(0)),
-      (
-        "element".to_string(),
-        nbt::Value::Compound(HashMap::from_iter([
-          (
-            "precipitation".to_string(),
-            nbt::Value::String("none".to_string()),
-          ),
-          ("temperature".to_string(), nbt::Value::Float(0.8)),
-          ("scale".to_string(), nbt::Value::Float(1.0)),
-          ("downfall".to_string(), nbt::Value::Float(0.5)),
-          (
-            "category".to_string(),
-            nbt::Value::String("plains".to_string()),
-          ),
-          (
-            "effects".to_string(),
-            nbt::Value::Compound(HashMap::from_iter([
-              ("sky_color".to_string(), nbt::Value::Int(7907327)),
-              ("water_fog_color".to_string(), nbt::Value::Int(329011)),
-              ("water_color".to_string(), nbt::Value::Int(4159204)),
-              ("fog_color".to_string(), nbt::Value::Int(12638463)),
-              (
-                "mood_sound".to_string(),
-                nbt::Value::Compound(HashMap::from_iter([
-                  ("block_search_extent".to_string(), nbt::Value::Int(8)),
-                  ("offset".to_string(), nbt::Value::Double(2.0)),
-                  (
-                    "sound".to_string(),
-                    nbt::Value::String("minecraft:ambient.cave".to_string()),
-                  ),
-                  ("tick_delay".to_string(), nbt::Value::Int(6000)),
-                ])),
-              ),
-            ])),
-          ),
-        ])),
-      ),
-    ]));
-
-    if let Err(e) = nbt.to_writer(&mut writer) {
+    if let Err(e) = dimension.to_writer(&mut writer) {
       println!("Hi")
     }
 
     let str = "minecraft:overworld".to_string().into_bytes();
 
-    // writer.write_var_i32(str.len() as i32);
-    // writer.write(&str);
+    writer.write_var_i32(str.len() as i32)?;
+    writer.write(&str)?;
 
-    // writer.write(&0i64.to_be_bytes());
+    writer.write(&0i64.to_be_bytes())?;
 
-    // writer.write_var_i32(420);
-    // writer.write_var_i32(2);
+    writer.write_var_i32(420)?;
+    writer.write_var_i32(2)?;
+    writer.write_var_i32(2)?;
 
-    // TODO: add rest of Join Game fields
+    writer.write(&0u8.to_be_bytes())?;
+    writer.write(&0u8.to_be_bytes())?;
+    writer.write(&0u8.to_be_bytes())?;
+    writer.write(&0u8.to_be_bytes())?;
+
     // https://wiki.vg/Protocol#Join_Game
   }
 
