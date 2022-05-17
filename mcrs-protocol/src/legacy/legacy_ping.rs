@@ -201,7 +201,7 @@ impl LegacyPingData {
   #[inline]
   pub fn new<S>(protocol: i8, hostname: S, port: i32) -> Self
   where
-    S: Into<S>,
+    S: Into<String>,
   {
     LegacyPingData {
       protocol,
