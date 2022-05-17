@@ -100,7 +100,7 @@ impl LegacyPong {
     let mut bytes = Vec::new();
 
     {
-      let mut writer = BufWriter::new(Cursor::new(&mut bytes));
+      let mut writer = BufWriter::new(&mut bytes);
 
       let response = format!(
         "§1\0{}\0{}\0{}\0{}\0{}",

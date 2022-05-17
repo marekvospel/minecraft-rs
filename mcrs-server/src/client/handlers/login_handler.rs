@@ -7,7 +7,7 @@ use mcrs_protocol::packets::login::set_compression::SetCompressionData;
 use mcrs_protocol::packets::packet::Packet;
 use mcrs_protocol::var_int::WriteVarInt;
 use std::collections::HashMap;
-use std::io::{BufWriter, Cursor, Write};
+use std::io::{BufWriter, Write};
 use std::net::TcpStream;
 
 pub(crate) fn handle_login(
@@ -19,11 +19,11 @@ pub(crate) fn handle_login(
     0 => {
       println!("[0x00] Received Player Login");
 
-      let login = LoginStartData::try_from(packet)?;
+      let login = LoginStartData::try_from(&*packet)?;
 
       println!(
         "{} is logging in from {}!",
-        login.username,
+        login.username(),
         stream.peer_addr()?.ip()
       );
 
@@ -31,14 +31,14 @@ pub(crate) fn handle_login(
       client_data.state = GameState::Play;
 
       // Set compression
-      let data = SetCompressionData::new(-1).to_bytes()?;
+      let data = SetCompressionData::new(-1).bytes()?;
       let new_packet = Packet::new(0x03, data, client_data.compression_threshold);
       client_data.compression_threshold = -1;
       stream.write(&new_packet.bytes()?)?;
 
       // Send success
-      let data = LoginSuccessData::new(0, login.username);
-      let new_packet = Packet::new(2, data.to_bytes()?, client_data.compression_threshold);
+      let data = LoginSuccessData::new(0, login.username().clone());
+      let new_packet = Packet::new(2, data.bytes()?, client_data.compression_threshold);
       stream.write(&new_packet.bytes()?)?;
 
       // let data = DisconnectData::new(json!({
@@ -60,7 +60,7 @@ fn send_login_data(stream: &mut TcpStream, client_data: &ClientData) -> Result<(
   let mut data = vec![];
 
   {
-    let mut writer = BufWriter::new(Cursor::new(&mut data));
+    let mut writer = BufWriter::new(&mut data);
 
     writer.write(&0i32.to_be_bytes())?;
     writer.write(&[0u8])?;
@@ -153,7 +153,7 @@ fn send_login_data(stream: &mut TcpStream, client_data: &ClientData) -> Result<(
   let mut data = vec![];
 
   {
-    let mut writer = BufWriter::new(Cursor::new(&mut data));
+    let mut writer = BufWriter::new(&mut data);
 
     let position =
       (((0i64 & 0x3FFFFFF) << 38) | ((0i64 & 0x3FFFFFF) << 12) | (0i64 & 0xFFF)) as u64;
@@ -169,7 +169,7 @@ fn send_login_data(stream: &mut TcpStream, client_data: &ClientData) -> Result<(
   let mut data = vec![];
 
   {
-    let mut writer = BufWriter::new(Cursor::new(&mut data));
+    let mut writer = BufWriter::new(&mut data);
 
     writer.write_var_i32(0)?;
     writer.write(&0i64.to_be_bytes())?;

@@ -8,6 +8,7 @@ pub struct PingData {
 }
 
 impl PingData {
+  #[inline]
   pub fn new(payload: i64) -> Self {
     PingData { payload }
   }

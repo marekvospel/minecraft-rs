@@ -10,6 +10,7 @@ pub struct StatusResponse {
 }
 
 impl StatusResponse {
+  #[inline]
   pub fn new<R>(response: R) -> Self
   where
     R: Into<serde_json::Value>,
