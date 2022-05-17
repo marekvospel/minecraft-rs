@@ -1,3 +1,5 @@
+use mcrs_protocol::packets::status::ping::PingData;
+use mcrs_protocol::packets::status::status::StatusResponse;
 use serde_json::json;
 use std::io::Write;
 use std::net::Shutdown::Both;
@@ -5,8 +7,6 @@ use std::net::TcpStream;
 
 use crate::Result;
 use crate::{ClientData, Packet};
-use minecraft_rs::packets::status::ping::PingData;
-use minecraft_rs::packets::status::status::StatusResponse;
 
 pub(crate) fn handle_status(
   packet: &mut Packet,

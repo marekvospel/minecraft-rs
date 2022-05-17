@@ -1,5 +1,5 @@
-use minecraft_rs::error::Error;
-use minecraft_rs::packets::packet::Packet;
+use mcrs_protocol::error::Error;
+use mcrs_protocol::packets::packet::Packet;
 use std::io::{BufReader, Cursor};
 
 #[test]

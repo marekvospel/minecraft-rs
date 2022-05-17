@@ -1,8 +1,8 @@
 use crate::client::handlers::handle_legacy_ping::handle_legacy_ping;
 use crate::client::handlers::packet_handler::handle_packet;
-use minecraft_rs::error::Error;
-use minecraft_rs::game_state::GameState;
-use minecraft_rs::packets::packet::Packet;
+use mcrs_protocol::error::Error;
+use mcrs_protocol::game_state::GameState;
+use mcrs_protocol::packets::packet::Packet;
 use std::net::{TcpListener, TcpStream};
 use std::thread;
 

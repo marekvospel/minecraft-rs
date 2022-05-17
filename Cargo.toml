@@ -1,20 +1,2 @@
-[package]
-name = "minecraft-rs"
-version = "0.4.0"
-edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
-serde_json = "1.0.79"
-thiserror = "1.0.30"
-flate2 = { version = "1.0.23", features = [ "zlib" ], default-features = false, optional = true }
-hematite-nbt = "0.5.2"
-
-[features]
-default = [ "compression" ]
-
-compression = [ "dep:flate2" ]
-
-[dev-dependencies]
-rusty-hook = "0.11.2"
+[workspace]
+members = ["mcrs-protocol", "mcrs-server"]

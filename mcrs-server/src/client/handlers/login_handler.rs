@@ -1,15 +1,11 @@
 use crate::ClientData;
 use crate::Result;
-use minecraft_rs::game_state::GameState;
-use minecraft_rs::packets::login::login_start::LoginStartData;
-use minecraft_rs::packets::login::login_success::LoginSuccessData;
-use minecraft_rs::packets::login::set_compression::SetCompressionData;
-use minecraft_rs::packets::packet::Packet;
-use minecraft_rs::packets::play::disconnect::DisconnectData;
-use minecraft_rs::var_int::WriteVarInt;
-use nbt::Map;
-use serde_json::{json, Value};
-use std::array::IntoIter;
+use mcrs_protocol::game_state::GameState;
+use mcrs_protocol::packets::login::login_start::LoginStartData;
+use mcrs_protocol::packets::login::login_success::LoginSuccessData;
+use mcrs_protocol::packets::login::set_compression::SetCompressionData;
+use mcrs_protocol::packets::packet::Packet;
+use mcrs_protocol::var_int::WriteVarInt;
 use std::collections::HashMap;
 use std::io::{BufWriter, Cursor, Write};
 use std::net::TcpStream;
@@ -72,11 +68,8 @@ fn send_login_data(stream: &mut TcpStream, client_data: &ClientData) -> Result<(
     writer.write(&0u8.to_be_bytes())?;
 
     // Worlds array (only 1)
-    writer.write_var_i32(2)?;
+    writer.write_var_i32(1)?;
     let str = "minecraft:overworld".to_string().into_bytes();
-    writer.write_var_i32(str.len() as i32)?;
-    writer.write(&str)?;
-    let str = "minecraft:the_nether".to_string().into_bytes();
     writer.write_var_i32(str.len() as i32)?;
     writer.write(&str)?;
 
@@ -108,17 +101,13 @@ fn send_login_data(stream: &mut TcpStream, client_data: &ClientData) -> Result<(
       (
         "minecraft:dimension_type".to_string(),
         nbt::Value::Compound(HashMap::from_iter([
-          ("type".to_string(), nbt::Value::String("type".to_string())),
+          (
+            "type".to_string(),
+            nbt::Value::String("minecraft:dimension_type".to_string()),
+          ),
           (
             "value".to_string(),
-            nbt::Value::List(vec![nbt::Value::Compound(HashMap::from_iter([
-              (
-                "name".to_string(),
-                nbt::Value::String("minecraft:overworld".to_string()),
-              ),
-              ("id".to_string(), nbt::Value::Int(0)),
-              ("element".to_string(), dimension.clone()),
-            ]))]),
+            nbt::Value::List(vec![dimension.clone()]),
           ),
         ])),
       ),
@@ -128,18 +117,20 @@ fn send_login_data(stream: &mut TcpStream, client_data: &ClientData) -> Result<(
       ),
     ]));
 
-    if let Err(e) = nbt.to_writer(&mut writer) {
+    println!("{:#?}", nbt);
+
+    if let Err(_) = nbt.to_writer(&mut writer) {
       println!("Hi")
     }
 
-    if let Err(e) = dimension.to_writer(&mut writer) {
+    if let Err(_) = dimension.to_writer(&mut writer) {
       println!("Hi")
     }
 
-    let str = "minecraft:overworld".to_string().into_bytes();
+    // let str = "minecraft:overworld".to_string().into_bytes();
 
-    writer.write_var_i32(str.len() as i32)?;
-    writer.write(&str)?;
+    // writer.write_var_i32(str.len() as i32)?;
+    // writer.write(&str)?;
 
     writer.write(&0i64.to_be_bytes())?;
 
@@ -147,10 +138,10 @@ fn send_login_data(stream: &mut TcpStream, client_data: &ClientData) -> Result<(
     writer.write_var_i32(2)?;
     writer.write_var_i32(2)?;
 
-    writer.write(&0u8.to_be_bytes())?;
-    writer.write(&0u8.to_be_bytes())?;
-    writer.write(&0u8.to_be_bytes())?;
-    writer.write(&0u8.to_be_bytes())?;
+    writer.write(&[0u8])?;
+    writer.write(&[0u8])?;
+    writer.write(&[0u8])?;
+    writer.write(&[0u8])?;
 
     // https://wiki.vg/Protocol#Join_Game
   }

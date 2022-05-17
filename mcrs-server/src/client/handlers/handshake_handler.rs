@@ -1,6 +1,6 @@
 use crate::Result;
 use crate::{ClientData, Packet};
-use minecraft_rs::packets::handshake::HandshakeData;
+use mcrs_protocol::packets::handshake::HandshakeData;
 
 pub(crate) fn handle_handshake(packet: &mut Packet, client_data: &mut ClientData) -> Result<()> {
   match packet.id {
