@@ -30,7 +30,7 @@ impl TryFrom<&mut Packet> for LoginStartData {
   type Error = Error;
 
   fn try_from(value: &mut Packet) -> std::result::Result<Self, Self::Error> {
-    let mut reader = BufReader::new(Cursor::new(&value.data));
+    let mut reader = BufReader::new(Cursor::new(value.data()));
     Self::read(&mut reader)
   }
 }

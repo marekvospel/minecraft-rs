@@ -15,7 +15,7 @@ pub(crate) fn handle_login(
   stream: &mut TcpStream,
   client_data: &mut ClientData,
 ) -> Result<()> {
-  match packet.id {
+  match packet.id() {
     0 => {
       println!("[0x00] Received Player Login");
 
@@ -34,12 +34,12 @@ pub(crate) fn handle_login(
       let data = SetCompressionData::new(-1).to_bytes()?;
       let new_packet = Packet::new(0x03, data, client_data.compression_threshold);
       client_data.compression_threshold = -1;
-      stream.write(&new_packet.into_bytes()?)?;
+      stream.write(&new_packet.bytes()?)?;
 
       // Send success
       let data = LoginSuccessData::new(0, login.username);
       let new_packet = Packet::new(2, data.to_bytes()?, client_data.compression_threshold);
-      stream.write(&new_packet.into_bytes()?)?;
+      stream.write(&new_packet.bytes()?)?;
 
       // let data = DisconnectData::new(json!({
       // "text": "I use Arch btw."
@@ -147,7 +147,7 @@ fn send_login_data(stream: &mut TcpStream, client_data: &ClientData) -> Result<(
   }
 
   // Send Join Game
-  let packet = Packet::new(0x26, data, client_data.compression_threshold).into_bytes()?;
+  let packet = Packet::new(0x26, data, client_data.compression_threshold).bytes()?;
   stream.write(&packet)?;
 
   let mut data = vec![];
@@ -163,7 +163,7 @@ fn send_login_data(stream: &mut TcpStream, client_data: &ClientData) -> Result<(
   }
 
   // Send Spawn Position
-  let packet = Packet::new(0x4B, data, client_data.compression_threshold).into_bytes()?;
+  let packet = Packet::new(0x4B, data, client_data.compression_threshold).bytes()?;
   stream.write(&packet)?;
 
   let mut data = vec![];
@@ -179,7 +179,7 @@ fn send_login_data(stream: &mut TcpStream, client_data: &ClientData) -> Result<(
   }
 
   // Send Player Position And Look
-  let packet = Packet::new(0x37, data, client_data.compression_threshold).into_bytes()?;
+  let packet = Packet::new(0x37, data, client_data.compression_threshold).bytes()?;
   stream.write(&packet)?;
 
   Ok(())

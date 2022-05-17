@@ -14,7 +14,7 @@ impl TryFrom<&mut Packet> for HandshakeData {
   type Error = crate::error::Error;
 
   fn try_from(packet: &mut Packet) -> std::result::Result<Self, Self::Error> {
-    let mut reader = BufReader::new(Cursor::new(&packet.data));
+    let mut reader = BufReader::new(Cursor::new(packet.data()));
 
     let protocol_version = reader.read_var_i32()?;
     let buf = reader.read_var_i32()?;

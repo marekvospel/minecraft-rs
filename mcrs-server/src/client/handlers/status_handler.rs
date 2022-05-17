@@ -13,7 +13,7 @@ pub(crate) fn handle_status(
   stream: &mut TcpStream,
   client_data: &mut ClientData,
 ) -> Result<()> {
-  match packet.id {
+  match packet.id() {
     0 => {
       println!("[0x00] Received Status Request");
 
@@ -34,7 +34,7 @@ pub(crate) fn handle_status(
       let response = response.to_bytes()?;
 
       let packet = Packet::new(0, response, client_data.compression_threshold);
-      let packet = packet.into_bytes()?;
+      let packet = packet.bytes()?;
 
       println!("[0x00] Sending Status Response");
       stream.write(&packet)?;
@@ -48,7 +48,7 @@ pub(crate) fn handle_status(
 
       let packet = Packet::new(1, ping.to_bytes()?, client_data.compression_threshold);
       println!("[0x01] Sending Pong");
-      stream.write(&packet.into_bytes()?)?;
+      stream.write(&packet.bytes()?)?;
 
       println!("Closing connection");
       stream.shutdown(Both)?;

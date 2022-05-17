@@ -2,18 +2,18 @@ use crate::error::Result;
 use crate::var_int::{VarIntRead, VarIntSize, WriteVarInt};
 use std::io::{BufReader, BufWriter, Cursor, Read, Write};
 
-#[cfg(feature = "compression")]
-use flate2::{read, write, Compression};
-
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct Packet {
-  pub length: i32,
-  pub id: i32,
-  pub data: Vec<u8>,
-  pub compression_threshold: i32,
+  length: i32,
+  id: i32,
+  data: Vec<u8>,
+  #[cfg(feature = "compression")]
+  compression_threshold: i32,
 }
 
 impl Packet {
+  #[cfg(feature = "compression")]
+  #[inline]
   pub fn new(id: i32, data: Vec<u8>, compression_threshold: i32) -> Self {
     Packet {
       length: (data.len() + id.var_int_size()) as i32,
@@ -23,80 +23,125 @@ impl Packet {
     }
   }
 
+  #[cfg(not(feature = "compression"))]
+  #[inline]
+  pub fn new(id: i32, data: Vec<u8>) -> Self {
+    Packet {
+      length: data.len() as i32,
+      id,
+      data,
+    }
+  }
+
+  #[inline]
+  pub fn id(&self) -> i32 {
+    self.id
+  }
+
+  #[inline]
+  pub fn length(&self) -> i32 {
+    self.length
+  }
+
+  #[inline]
+  pub fn data(&self) -> &Vec<u8> {
+    &self.data
+  }
+
+  #[cfg(feature = "compression")]
+  #[inline]
+  pub fn compression_threshold(&self) -> i32 {
+    self.compression_threshold
+  }
+
+  // TODO: Setters
+}
+
+impl Packet {
+  #[cfg(not(feature = "compression"))]
+  pub fn read<R>(reader: &mut R) -> Result<Self>
+  where
+    R: Read,
+  {
+    let length = reader.read_var_i32()?;
+    let id = reader.read_var_i32()?;
+    let mut data = vec![0u8; (length as usize) - id.var_int_size()];
+    reader.read_exact(&mut data)?;
+
+    Ok(Packet { length, id, data })
+  }
+
+  #[cfg(feature = "compression")]
   pub fn read<R>(reader: &mut R, compression_threshold: i32) -> Result<Self>
   where
     R: Read,
   {
     let length = reader.read_var_i32()?;
 
-    return if compression_threshold < 0 {
-      Self::read_packet_uncompressed(reader, length, compression_threshold)
+    if compression_threshold < 0 {
+      let id = reader.read_var_i32()?;
+      let mut data = vec![0u8; (length as usize) - id.var_int_size()];
+      reader.read_exact(&mut data)?;
+
+      Ok(Packet {
+        length,
+        id,
+        data,
+        compression_threshold,
+      })
     } else {
-      Self::read_packet_compressed(reader, length, compression_threshold)
-    };
-  }
+      let mut data_length = reader.read_var_i32()?;
 
-  fn read_packet_uncompressed<R>(
-    reader: &mut R,
-    length: i32,
-    compression_threshold: i32,
-  ) -> Result<Self>
-  where
-    R: Read,
-  {
-    let id = reader.read_var_i32()?;
-    let mut data = vec![0u8; (length as usize) - id.var_int_size()];
-    reader.read_exact(&mut data)?;
+      let mut data = vec![0u8; (length as usize) - data_length.var_int_size()];
+      reader.read_exact(&mut data)?;
 
-    Ok(Packet {
-      length,
-      id,
-      data,
-      compression_threshold,
-    })
-  }
+      let mut uncompressed = Vec::new();
 
-  fn read_packet_compressed<R>(
-    reader: &mut R,
-    length: i32,
-    compression_threshold: i32,
-  ) -> Result<Self>
-  where
-    R: Read,
-  {
-    let mut data_length = reader.read_var_i32()?;
-
-    let mut data = vec![0u8; (length as usize) - data_length.var_int_size()];
-    reader.read_exact(&mut data)?;
-
-    let mut uncompressed = Vec::new();
-
-    if data_length != 0 && cfg!(feature = "compression") {
-      #[cfg(feature = "compression")]
-      {
-        let mut decoder = read::ZlibDecoder::new(Cursor::new(data));
-        decoder.read_to_end(&mut uncompressed)?;
+      if data_length != 0 {
+        {
+          use flate2::read;
+          let mut decoder = read::ZlibDecoder::new(Cursor::new(data));
+          decoder.read_to_end(&mut uncompressed)?;
+        }
+      } else {
+        uncompressed = data;
+        data_length = length - data_length.var_int_size() as i32;
       }
-    } else {
-      uncompressed = data;
-      data_length = length - data_length.var_int_size() as i32;
+
+      let mut reader = BufReader::new(Cursor::new(uncompressed));
+
+      let id = reader.read_var_i32()?;
+      let mut data = vec![0u8; data_length as usize - id.var_int_size()];
+      reader.read_exact(&mut data)?;
+
+      Ok(Packet {
+        id,
+        length: data_length,
+        data,
+        compression_threshold,
+      })
+    }
+  }
+}
+
+impl Packet {
+  #[cfg(not(feature = "compression"))]
+  pub fn bytes(&self) -> Result<Vec<u8>> {
+    let mut bytes = Vec::new();
+
+    {
+      let mut writer = BufWriter::new(&mut bytes);
+
+      writer.write_var_i32(self.length)?;
+      writer.write_var_i32(self.id)?;
+      writer.write(&self.data)?;
     }
 
-    let mut reader = BufReader::new(Cursor::new(uncompressed));
-
-    let id = reader.read_var_i32()?;
-    let mut data = vec![0u8; data_length as usize - id.var_int_size()];
-    reader.read_exact(&mut data)?;
-
-    Ok(Packet {
-      length: data_length,
-      id,
-      data,
-      compression_threshold,
-    })
+    Ok(bytes)
   }
 
-  pub fn into_bytes(self) -> Result<Vec<u8>> {
+  #[cfg(feature = "compression")]
+  pub fn bytes(self) -> Result<Vec<u8>> {
     let mut bytes = Vec::new();
 
     if self.compression_threshold < 0 {
@@ -116,13 +161,8 @@ impl Packet {
         writer.write(&self.data)?;
       }
 
-      #[cfg(not(feature = "compression"))]
-      {
-        compressed = uncompressed
-      }
-
-      #[cfg(feature = "compression")]
       if self.compression_threshold < self.length && self.compression_threshold != 0 {
+        use flate2::{write, Compression};
         let mut encoder = write::ZlibEncoder::new(Vec::new(), Compression::default());
         encoder.write(&uncompressed)?;
         compressed = encoder.finish()?;

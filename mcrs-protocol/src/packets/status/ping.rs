@@ -10,7 +10,7 @@ impl TryFrom<&mut Packet> for PingData {
   type Error = std::io::Error;
 
   fn try_from(packet: &mut Packet) -> std::result::Result<Self, Self::Error> {
-    let mut reader = BufReader::new(Cursor::new(&packet.data));
+    let mut reader = BufReader::new(Cursor::new(packet.data()));
 
     let mut buf = [0u8; 8];
     reader.read_exact(&mut buf)?;

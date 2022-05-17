@@ -1,4 +1,4 @@
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum GameState {
   Handshaking = 0,
   Status = 1,

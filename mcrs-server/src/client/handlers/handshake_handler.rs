@@ -3,7 +3,7 @@ use crate::{ClientData, Packet};
 use mcrs_protocol::packets::handshake::HandshakeData;
 
 pub(crate) fn handle_handshake(packet: &mut Packet, client_data: &mut ClientData) -> Result<()> {
-  match packet.id {
+  match packet.id() {
     0 => {
       println!("[0x00] Received Handshake");
 
