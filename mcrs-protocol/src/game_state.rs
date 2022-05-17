@@ -18,3 +18,14 @@ impl From<i32> for GameState {
     }
   }
 }
+
+impl GameState {
+  pub fn as_i32(&self) -> i32 {
+    match self {
+      GameState::Handshaking => 0,
+      GameState::Status => 1,
+      GameState::Login => 2,
+      GameState::Play => 3,
+    }
+  }
+}

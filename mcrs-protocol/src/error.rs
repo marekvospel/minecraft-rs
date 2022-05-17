@@ -7,6 +7,8 @@ pub enum Error {
   IoError(#[from] io::Error),
   #[error("VarInt is too big")]
   VarIntTooBig(),
+  #[error("String is not json serializable: {0}")]
+  InvalidJson(#[from] serde_json::Error),
 }
 
 pub(crate) type Result<T> = std::result::Result<T, Error>;

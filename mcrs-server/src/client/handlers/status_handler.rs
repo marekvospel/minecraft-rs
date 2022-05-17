@@ -17,7 +17,7 @@ pub(crate) fn handle_status(
     0 => {
       println!("[0x00] Received Status Request");
 
-      let response = StatusResponse::new(&json!({
+      let response = StatusResponse::new(json!({
         "version": {
           "name": "1.18.2",
           "protocol": 758
@@ -31,7 +31,7 @@ pub(crate) fn handle_status(
         }
       }));
 
-      let response = response.to_bytes()?;
+      let response = response.bytes()?;
 
       let packet = Packet::new(0, response, client_data.compression_threshold);
       let packet = packet.bytes()?;
@@ -44,9 +44,9 @@ pub(crate) fn handle_status(
     1 => {
       println!("[0x01] Received Ping");
 
-      let ping = PingData::try_from(packet)?;
+      let ping = PingData::try_from(&*packet)?;
 
-      let packet = Packet::new(1, ping.to_bytes()?, client_data.compression_threshold);
+      let packet = Packet::new(1, ping.bytes()?, client_data.compression_threshold);
       println!("[0x01] Sending Pong");
       stream.write(&packet.bytes()?)?;
 

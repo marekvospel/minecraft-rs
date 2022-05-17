@@ -3,14 +3,7 @@ use mcrs_protocol::packets::packet::Packet;
 use std::io::{BufReader, Cursor};
 
 #[test]
-fn packet_gets_constructed() {
-  let packet = Packet::new(0, vec![], -1);
-
-  assert_eq!(packet, Packet::new(0, vec![], -1));
-}
-
-#[test]
-fn packet_gets_parsed() -> Result<(), Error> {
+fn packet_gets_deserialized() -> Result<(), Error> {
   let mut stream = BufReader::new(Cursor::new([1u8, 0u8]));
 
   let packet = Packet::read(&mut stream, -1)?;
@@ -21,7 +14,7 @@ fn packet_gets_parsed() -> Result<(), Error> {
 }
 
 #[test]
-fn compressed_packet_gets_parsed() -> Result<(), Error> {
+fn compressed_packet_gets_deserialized() -> Result<(), Error> {
   let data: [u8; 14] = [13, 4, 120, 156, 99, 96, 96, 96, 0, 0, 0, 4, 0, 1];
   let mut stream = BufReader::new(Cursor::new(data));
 

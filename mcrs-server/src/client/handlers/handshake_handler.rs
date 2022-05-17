@@ -7,10 +7,10 @@ pub(crate) fn handle_handshake(packet: &mut Packet, client_data: &mut ClientData
     0 => {
       println!("[0x00] Received Handshake");
 
-      let handshake = HandshakeData::try_from(packet)?;
+      let handshake = HandshakeData::try_from(&*packet)?;
 
-      println!("Setting client state to {:?}", handshake.state);
-      client_data.state = handshake.state;
+      println!("Setting client state to {:?}", handshake.state());
+      client_data.state = handshake.state();
 
       Ok(())
     }
