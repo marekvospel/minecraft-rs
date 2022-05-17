@@ -9,6 +9,8 @@ pub enum Error {
   VarIntTooBig(),
   #[error("String is not json serializable: {0}")]
   InvalidJson(#[from] serde_json::Error),
+  #[error("Invalid legacy packet: {0}")]
+  LegacyError(String),
 }
 
 pub(crate) type Result<T> = std::result::Result<T, Error>;

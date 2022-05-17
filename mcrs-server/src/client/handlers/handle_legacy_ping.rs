@@ -1,9 +1,10 @@
+use crate::Result;
 use mcrs_protocol::legacy::legacy_ping::{LegacyPing, LegacyPingData, LegacyPong};
-use std::io::{Error, Write};
+use std::io::Write;
 use std::net::Shutdown::Both;
 use std::net::TcpStream;
 
-pub fn handle_legacy_ping(stream: &mut TcpStream) -> Result<(), Error> {
+pub fn handle_legacy_ping(stream: &mut TcpStream) -> Result<()> {
   println!("[0xFE] Received 0xFE in handshaking state");
 
   let ping = LegacyPing::read(stream)?;
@@ -11,7 +12,7 @@ pub fn handle_legacy_ping(stream: &mut TcpStream) -> Result<(), Error> {
 
   let _data: Option<LegacyPingData>;
 
-  if let Some(_) = ping.data {
+  if let Some(_) = ping.data() {
     // data = Some(PingData::try_from(&ping)?);
     _data = None
   } else {
@@ -46,7 +47,7 @@ pub fn handle_legacy_ping(stream: &mut TcpStream) -> Result<(), Error> {
     69,
     420,
   )
-  .to_bytes()?;
+  .bytes()?;
 
   println!("[0xFE] Sending Legacy Ping Response");
   // TODO: gather more info about modern clients reading the legacy ping response

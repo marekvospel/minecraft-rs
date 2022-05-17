@@ -1,26 +1,68 @@
+use crate::error::Error::{IoError, LegacyError};
+use crate::Result;
 use std::io::{BufReader, BufWriter, Cursor, Error, ErrorKind, Read, Write};
 use std::net::TcpStream;
 
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub struct LegacyPing {
   /// Should always be 0x01
-  pub payload: u8,
+  payload: u8,
   /// 0xfa = plugin message identifier
-  pub packet_identifier: Option<u8>,
+  packet_identifier: Option<u8>,
   /// MC|PingHost (encoded as UTF16 string inside tcpstream)
-  pub host: Option<String>,
+  host: Option<String>,
   /// The rest of the data in the ping
-  pub data: Option<Vec<u8>>,
+  data: Option<Vec<u8>>,
 }
 
 impl LegacyPing {
-  pub fn read(stream: &mut TcpStream) -> Result<LegacyPing, Error> {
+  #[inline]
+  pub fn new(
+    payload: u8,
+    packet_identifier: Option<u8>,
+    host: Option<String>,
+    data: Option<Vec<u8>>,
+  ) -> Self {
+    LegacyPing {
+      payload,
+      packet_identifier,
+      host,
+      data,
+    }
+  }
+
+  #[inline]
+  pub fn payload(&self) -> u8 {
+    self.payload
+  }
+
+  #[inline]
+  pub fn packet_identifier(&self) -> &Option<u8> {
+    &self.packet_identifier
+  }
+
+  #[inline]
+  pub fn host(&self) -> &Option<String> {
+    &self.host
+  }
+
+  #[inline]
+  pub fn data(&self) -> &Option<Vec<u8>> {
+    &self.data
+  }
+}
+
+impl LegacyPing {
+  pub fn read(stream: &mut TcpStream) -> Result<LegacyPing> {
     stream.set_nonblocking(true)?;
 
     let mut buf = [0u8];
     stream.read_exact(&mut buf)?;
 
     if buf[0] != 0xfe {
-      return Err(Error::new(ErrorKind::Other, "Not a valid LegacyPing"));
+      return Err(LegacyError(
+        "Only legacy ping (0xfe) is allowed.".to_string(),
+      ));
     }
 
     stream.read_exact(&mut buf)?;
@@ -39,7 +81,7 @@ impl LegacyPing {
       return if e.kind() == ErrorKind::WouldBlock {
         Ok(legacy_ping)
       } else {
-        Err(e)
+        Err(IoError(e))
       };
     }
 
@@ -71,15 +113,19 @@ impl LegacyPing {
   }
 }
 
+// TODO: LegacyPing.bytes()
+
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub struct LegacyPong {
-  pub protocol: i32,
-  pub version_name: String,
-  pub motd: String,
-  pub current_players: i128,
-  pub max_players: i128,
+  protocol: i32,
+  version_name: String,
+  motd: String,
+  current_players: i128,
+  max_players: i128,
 }
 
 impl LegacyPong {
+  #[inline]
   pub fn new(
     protocol: i32,
     version_name: String,
@@ -96,7 +142,34 @@ impl LegacyPong {
     }
   }
 
-  pub fn to_bytes(self) -> Result<Vec<u8>, Error> {
+  #[inline]
+  pub fn protocol(&self) -> i32 {
+    self.protocol
+  }
+
+  #[inline]
+  pub fn version_name(&self) -> &String {
+    &self.version_name
+  }
+
+  #[inline]
+  pub fn motd(&self) -> &String {
+    &self.motd
+  }
+
+  #[inline]
+  pub fn current_players(&self) -> i128 {
+    self.current_players
+  }
+
+  #[inline]
+  pub fn max_players(&self) -> i128 {
+    self.max_players
+  }
+}
+
+impl LegacyPong {
+  pub fn bytes(self) -> Result<Vec<u8>> {
     let mut bytes = Vec::new();
 
     {
@@ -117,17 +190,46 @@ impl LegacyPong {
   }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub struct LegacyPingData {
-  pub protocol: i8,
-  pub hostname: String,
-  pub port: i32,
+  protocol: i8,
+  hostname: String,
+  port: i32,
+}
+
+impl LegacyPingData {
+  #[inline]
+  pub fn new<S>(protocol: i8, hostname: S, port: i32) -> Self
+  where
+    S: Into<S>,
+  {
+    LegacyPingData {
+      protocol,
+      hostname: hostname.into(),
+      port,
+    }
+  }
+
+  #[inline]
+  pub fn protocol(&self) -> i8 {
+    self.protocol
+  }
+
+  #[inline]
+  pub fn hostname(&self) -> &String {
+    &self.hostname
+  }
+
+  #[inline]
+  pub fn port(&self) -> i32 {
+    self.port
+  }
 }
 
 impl TryFrom<&LegacyPing> for LegacyPingData {
   type Error = Error;
 
-  fn try_from(_ping: &LegacyPing) -> Result<Self, Self::Error> {
+  fn try_from(_ping: &LegacyPing) -> std::result::Result<Self, Self::Error> {
     // TODO: parse LegacyPing.data to get payload, hostname and port
     Ok(LegacyPingData {
       protocol: 0,
@@ -138,11 +240,11 @@ impl TryFrom<&LegacyPing> for LegacyPingData {
 }
 
 trait ToU16 {
-  fn to_u16(self) -> Result<Vec<u16>, Error>;
+  fn to_u16(self) -> Result<Vec<u16>>;
 }
 
 impl ToU16 for Vec<u8> {
-  fn to_u16(self) -> Result<Vec<u16>, Error> {
+  fn to_u16(self) -> Result<Vec<u16>> {
     let mut output = Vec::new();
 
     let mut reader = BufReader::new(Cursor::new(&self));
@@ -165,11 +267,11 @@ impl ToU16 for Vec<u8> {
 }
 
 trait ToU8 {
-  fn to_u8(self) -> Result<Vec<u8>, Error>;
+  fn to_u8(self) -> Result<Vec<u8>>;
 }
 
 impl ToU8 for Vec<u16> {
-  fn to_u8(self) -> Result<Vec<u8>, Error> {
+  fn to_u8(self) -> Result<Vec<u8>> {
     let mut output = Vec::new();
 
     for i in self {

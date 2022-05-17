@@ -2,4 +2,4 @@
 - [X] 0.2.0 Legacy ping support? Better project structure
 - [X] 0.3.0 Add login logic, better error handling
 - [X] 0.4.0 Compression, Unit tests
-- [ ] 0.5.0 Protocol lib changes, more tests
+- [X] 0.5.0 Protocol lib changes, more tests
