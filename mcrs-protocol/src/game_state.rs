@@ -6,6 +6,17 @@ pub enum GameState {
   Play = 3,
 }
 
+impl GameState {
+  pub fn as_i32(&self) -> i32 {
+    match self {
+      GameState::Handshaking => 0,
+      GameState::Status => 1,
+      GameState::Login => 2,
+      GameState::Play => 3,
+    }
+  }
+}
+
 impl From<i32> for GameState {
   fn from(value: i32) -> Self {
     use GameState::*;
@@ -19,13 +30,14 @@ impl From<i32> for GameState {
   }
 }
 
-impl GameState {
-  pub fn as_i32(&self) -> i32 {
+impl ToString for GameState {
+  fn to_string(&self) -> String {
     match self {
-      GameState::Handshaking => 0,
-      GameState::Status => 1,
-      GameState::Login => 2,
-      GameState::Play => 3,
+      GameState::Handshaking => "Handshaking",
+      GameState::Status => "Status",
+      GameState::Login => "Login",
+      GameState::Play => "Play",
     }
+    .to_string()
   }
 }

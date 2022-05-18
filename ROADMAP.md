@@ -3,3 +3,4 @@
 - [X] 0.3.0 Add login logic, better error handling
 - [X] 0.4.0 Compression, Unit tests
 - [X] 0.5.0 Protocol lib changes, more tests
+- [ ] 0.6.0 Client and Server lib implementation
