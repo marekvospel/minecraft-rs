@@ -1,2 +1,2 @@
 [workspace]
-members = ["mcrs-protocol", "mcrs-server"]
+members = ["mcrs-protocol", "mcrs-client", "mcrs-server"]
