@@ -4,12 +4,18 @@ use mcrs_protocol::game_state::GameState;
 use mcrs_protocol::packets::handshake::HandshakeData;
 use mcrs_protocol::packets::packet::Packet;
 use mcrs_protocol::packets::status::ping::PingData;
-use mcrs_protocol::packets::status::status::StatusResponse;
-use std::thread::sleep;
-use std::time::Duration;
+use std::net::TcpStream;
+
+fn server_online() -> bool {
+  TcpStream::connect("localhost:25577").is_ok()
+}
 
 #[test]
 fn client_pings() -> Result<(), Error> {
+  if !server_online() {
+    return Ok(());
+  }
+
   let mut client = ClientBuilder::new("localhost:25577").connect()?;
 
   let handshake = HandshakeData::new(758, "localhost", 25565, GameState::Status);
@@ -24,15 +30,12 @@ fn client_pings() -> Result<(), Error> {
   let packet = Packet::new(1, ping.bytes()?, -1);
   client.send(packet)?;
 
-  let received = client.poll()?;
-  let status = StatusResponse::try_from(&received)?;
-
-  println!("{:?}, {:?}", received, status);
+  let _ = client.poll()?;
 
   let received = client.poll()?;
   let pong = PingData::try_from(&received)?;
 
-  println!("{:?}, {:?}", received, pong);
+  assert_eq!(pong.payload(), 69);
 
   Ok(())
 }

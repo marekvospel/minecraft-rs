@@ -1,5 +1,6 @@
 use crate::client::client::Client;
 use crate::Result;
+use std::net::TcpStream;
 
 pub struct ClientBuilder {
   address: String,
@@ -17,6 +18,8 @@ impl ClientBuilder {
   }
 
   pub fn connect(self) -> Result<Client> {
-    Ok(Client::new(self.address)?)
+    let stream = TcpStream::connect(self.address)?;
+
+    Ok(Client::new(stream))
   }
 }

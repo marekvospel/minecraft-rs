@@ -4,7 +4,6 @@ use std::io::Write;
 use std::net::TcpStream;
 use std::ops::DerefMut;
 use std::sync::{Arc, RwLock};
-use std::thread::spawn;
 
 #[derive(Debug, Clone)]
 pub struct Client {
@@ -12,15 +11,12 @@ pub struct Client {
 }
 
 impl Client {
-  pub(crate) fn new<U>(url: U) -> Result<Self>
-  where
-    U: Into<String>,
-  {
+  pub(crate) fn new(stream: TcpStream) -> Self {
     let client = Client {
-      stream: Arc::new(RwLock::new(TcpStream::connect(url.into())?)),
+      stream: Arc::new(RwLock::new(stream)),
     };
 
-    Ok(client)
+    client
   }
 
   pub fn poll(&self) -> Result<Packet> {
