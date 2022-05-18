@@ -1,7 +1,6 @@
-use crate::client::callback::Callback;
-use crate::client::client::Client;
+use crate::callback::Callback;
+use crate::client::Client;
 use crate::Result;
-use mcrs_protocol::game_state::GameState;
 use mcrs_protocol::packets::packet::Packet;
 use std::collections::HashMap;
 use std::net::TcpStream;
@@ -47,8 +46,12 @@ impl ClientBuilder {
     let clone = client.clone();
 
     spawn(move || loop {
+      if !clone.connected().unwrap() {
+        break;
+      }
+
       let packet = clone.poll().unwrap();
-      clone.callback(GameState::Status, packet).unwrap();
+      clone.callback(packet).unwrap();
     });
 
     Ok(client)

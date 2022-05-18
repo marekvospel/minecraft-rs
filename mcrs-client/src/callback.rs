@@ -1,4 +1,6 @@
-use crate::client::client::Client;
+// https://github.com/1c3t3a/rust-socketio/blob/main/socketio/src/client/callback.rs
+
+use crate::client::Client;
 use mcrs_protocol::packets::packet::Packet;
 use std::fmt::{Debug, Formatter};
 use std::ops::{Deref, DerefMut};
