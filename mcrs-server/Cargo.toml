@@ -1,15 +1,19 @@
 [package]
 name = "mcrs-server"
-version = "0.4.0"
+version = "0.5.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+bench = false
+
 
 [dependencies]
 serde_json = "1.0.79"
 thiserror = "1.0.30"
 hematite-nbt = "0.5.2"
-mcrs-protocol = { version="0.4.0", path = "../mcrs-protocol" }
+mcrs-protocol = { version="0.5.0", path = "../mcrs-protocol" }
+mcrs-client = { version="0.5.0", path = "../mcrs-client" }
 
 [dev-dependencies]
 rusty-hook = "0.11.2"

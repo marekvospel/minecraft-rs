@@ -147,7 +147,7 @@ dependencies = [
 
 [[package]]
 name = "mcrs-client"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "mcrs-protocol",
  "rusty-hook",
@@ -155,7 +155,7 @@ dependencies = [
 
 [[package]]
 name = "mcrs-protocol"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "flate2",
  "rusty-hook",
@@ -165,9 +165,10 @@ dependencies = [
 
 [[package]]
 name = "mcrs-server"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "hematite-nbt",
+ "mcrs-client",
  "mcrs-protocol",
  "rusty-hook",
  "serde_json",

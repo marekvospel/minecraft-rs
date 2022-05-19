@@ -1,19 +1,19 @@
 // https://github.com/1c3t3a/rust-socketio/blob/main/socketio/src/client/callback.rs
 
-use crate::client::Client;
-use mcrs_protocol::packets::packet::Packet;
+use crate::server::Server;
+use mcrs_client::client::Client;
 use std::fmt::{Debug, Formatter};
 use std::ops::{Deref, DerefMut};
 
 pub struct Callback {
-  inner: Box<dyn for<'a> FnMut(Packet, Client) + 'static + Send + Sync>,
+  inner: Box<dyn for<'a> FnMut(Client, Server) + 'static + Send + Sync>,
 }
 
 impl Callback {
   #[inline]
   pub fn new<C>(callback: C) -> Self
   where
-    C: for<'a> FnMut(Packet, Client) + 'static + Send + Sync,
+    C: for<'a> FnMut(Client, Server) + 'static + Send + Sync,
   {
     Callback {
       inner: Box::new(callback),
@@ -28,7 +28,7 @@ impl Debug for Callback {
 }
 
 impl Deref for Callback {
-  type Target = dyn for<'a> FnMut(Packet, Client) + 'static + Sync + Send;
+  type Target = dyn for<'a> FnMut(Client, Server) + 'static + Sync + Send;
 
   fn deref(&self) -> &Self::Target {
     &self.inner

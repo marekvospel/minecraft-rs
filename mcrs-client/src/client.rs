@@ -19,7 +19,7 @@ pub struct Client {
 
 impl Client {
   #[inline]
-  pub(crate) fn new(stream: TcpStream, events: HashMap<String, Vec<Callback>>) -> Self {
+  pub fn new(stream: TcpStream, events: HashMap<String, Vec<Callback>>) -> Self {
     Client {
       stream: Arc::new(RwLock::new(stream)),
       events: Arc::new(RwLock::new(events)),
@@ -37,6 +37,7 @@ impl Client {
   where
     S: Into<GameState>,
   {
+    // TODO: error handling
     let mut lock = self.state.write().unwrap();
     let client_state = &mut lock;
 
@@ -74,7 +75,10 @@ impl Client {
     Ok(lock.peek(&mut buf)? > 0)
   }
 
-  pub(crate) fn callback(&self, packet: Packet) -> Result<()> {
+  ///
+  /// Internal method used to call callbacks for events
+  ///
+  pub fn callback(&self, packet: Packet) -> Result<()> {
     // TODO: error handling
     let mut events = self.events.write().unwrap();
     let lock = events.deref_mut();
