@@ -1,5 +1,6 @@
 use crate::callback::Callback;
 use crate::client::Client;
+use crate::events::ClientEvent;
 use crate::Result;
 use mcrs_protocol::packets::packet::Packet;
 use std::collections::HashMap;
@@ -9,7 +10,7 @@ use std::thread::spawn;
 #[derive(Debug)]
 pub struct ClientBuilder {
   address: String,
-  events: HashMap<String, Vec<Callback>>,
+  events: HashMap<ClientEvent, Vec<Callback>>,
 }
 
 impl ClientBuilder {
@@ -24,9 +25,9 @@ impl ClientBuilder {
     }
   }
 
-  pub fn on<S, C>(mut self, event: S, callback: C) -> Self
+  pub fn on<E, C>(mut self, event: E, callback: C) -> Self
   where
-    S: Into<String>,
+    E: Into<ClientEvent>,
     C: for<'a> Fn(Packet, Client) + 'static + Send + Sync,
   {
     let event = event.into();

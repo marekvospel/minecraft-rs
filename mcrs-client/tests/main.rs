@@ -1,4 +1,5 @@
 use mcrs_client::builder::ClientBuilder;
+use mcrs_client::events::{ClientEvent, PacketId};
 use mcrs_protocol::error::Error;
 use mcrs_protocol::game_state::GameState;
 use mcrs_protocol::packets::handshake::HandshakeData;
@@ -14,7 +15,7 @@ fn server_online() -> bool {
 }
 
 #[test]
-fn client_pings() -> Result<(), Error> {
+fn client_pings_manually() -> Result<(), Error> {
   sleep(Duration::from_millis(100));
   if !server_online() {
     return Ok(());
@@ -45,7 +46,7 @@ fn client_pings() -> Result<(), Error> {
 }
 
 #[test]
-fn client_logs_events() -> Result<(), Error> {
+fn client_pings_auto() -> Result<(), Error> {
   sleep(Duration::from_millis(100));
   if !server_online() {
     return Ok(());
@@ -54,15 +55,21 @@ fn client_logs_events() -> Result<(), Error> {
   let (tx, rx) = sync_channel(0);
 
   let mut client = ClientBuilder::new("localhost:25577")
-    .on("Status:0", move |_, mut client| {
-      println!("Status:0");
-      let ping = PingData::new(69);
-      let packet = Packet::new(1, ping.bytes().unwrap(), -1);
-      client.send(packet).unwrap();
-    })
-    .on("Status:1", move |_, _| {
-      println!("Status:0");
-      tx.send(true).unwrap();
+    .on(
+      ClientEvent::Status(PacketId::Id(0)),
+      move |_, mut client| {
+        // Send ping
+        let ping = PingData::new(69);
+        let packet = Packet::new(1, ping.bytes().unwrap(), -1);
+        // Server isn't able to change
+        sleep(Duration::from_millis(10));
+        client.send(packet).unwrap();
+      },
+    )
+    .on(ClientEvent::Status(PacketId::Id(1)), move |packet, _| {
+      // Receive pong
+      let data = PingData::try_from(packet.data()).unwrap();
+      tx.send(data.payload()).unwrap();
     })
     .connect()?;
 
@@ -75,7 +82,7 @@ fn client_logs_events() -> Result<(), Error> {
   let packet = Packet::new(0, vec![], -1);
   client.send(packet)?;
 
-  assert!(rx.recv().unwrap());
+  assert_eq!(rx.recv().unwrap(), 69);
 
   Ok(())
 }
