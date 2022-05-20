@@ -76,15 +76,38 @@ impl Client {
     Ok(lock.peek(&mut buf)? > 0)
   }
 
+  pub fn on<C, E>(&self, event: E, callback: C) -> Result<()>
+  where
+    E: Into<ClientEvent>,
+    C: for<'a> Fn(Packet, Client) + 'static + Send + Sync,
+  {
+    let event = event.into();
+
+    // TODO: error handling
+    let mut events = self.events.write().unwrap();
+
+    if !events.contains_key(&event) {
+      events.insert(event.clone(), Vec::new());
+    }
+
+    let list = events.get_mut(&event).unwrap();
+
+    list.push(Callback::new(callback));
+
+    drop(events);
+
+    Ok(())
+  }
+
   ///
   /// Internal method used to call callbacks for events
   ///
   pub fn callback(&self, packet: Packet) -> Result<()> {
     let event = ClientEvent::from(self.game_state()).set_packet_id(PacketId::Id(packet.id()));
-    Self::call_callback(self, event, packet.clone())?;
-    let event = ClientEvent::from(self.game_state());
-    Self::call_callback(self, event, packet.clone())?;
-    let event = ClientEvent::Any;
+    let any_state = ClientEvent::from(self.game_state());
+    let any = ClientEvent::Any;
+    Self::call_callback(self, any, packet.clone())?;
+    Self::call_callback(self, any_state, packet.clone())?;
     Self::call_callback(self, event, packet.clone())?;
 
     Ok(())
@@ -96,6 +119,7 @@ impl Client {
     let lock = events.deref_mut();
 
     let listeners = lock.get_mut(&event);
+
     if listeners.is_some() {
       let listeners = listeners.unwrap();
 
@@ -103,8 +127,6 @@ impl Client {
         listener(packet.clone(), self.clone())
       }
     }
-
-    drop(lock);
 
     Ok(())
   }

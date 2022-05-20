@@ -17,3 +17,7 @@ mcrs-client = { version="0.5.0", path = "../mcrs-client" }
 
 [dev-dependencies]
 rusty-hook = "0.11.2"
+
+[[example]]
+name = "proxy"
+path = "examples/proxy/main.rs"

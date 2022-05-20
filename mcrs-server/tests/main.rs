@@ -6,7 +6,7 @@ use std::sync::mpsc::sync_channel;
 
 #[test]
 fn server_gets_built() -> Result<(), Error> {
-  let _ = ServerBuilder::new("0.0.0.0:25565").connect()?;
+  let _ = ServerBuilder::new("0.0.0.0:25565").start()?;
 
   Ok(())
 }
@@ -19,7 +19,7 @@ fn server_calls_on_connection() -> Result<(), Error> {
     .on(ServerEvent::Connect, move |_, _| {
       tx.send(true).unwrap();
     })
-    .connect()?;
+    .start()?;
 
   let _ = ClientBuilder::new("127.0.0.1:25566").connect()?;
 

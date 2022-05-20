@@ -43,3 +43,9 @@ pub enum PacketId {
   Any,
   Id(i32),
 }
+
+impl From<i32> for PacketId {
+  fn from(id: i32) -> Self {
+    PacketId::Id(id)
+  }
+}

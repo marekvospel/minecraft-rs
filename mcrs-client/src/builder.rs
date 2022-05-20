@@ -25,7 +25,7 @@ impl ClientBuilder {
     }
   }
 
-  pub fn on<E, C>(mut self, event: E, callback: C) -> Self
+  pub fn on<C, E>(mut self, event: E, callback: C) -> Self
   where
     E: Into<ClientEvent>,
     C: for<'a> Fn(Packet, Client) + 'static + Send + Sync,

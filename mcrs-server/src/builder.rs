@@ -42,27 +42,34 @@ impl ServerBuilder {
     self
   }
 
-  pub fn connect(self) -> Result<Server> {
-    let (server, listener) = self.connect_inner()?;
+  pub fn start(self) -> Result<Server> {
+    let (server, listener) = self.start_inner()?;
     let clone = server.clone();
 
-    spawn(move || loop {
+    spawn(move || {
       for connection in listener.incoming() {
         let connection = connection.unwrap();
 
-        clone
-          .callback(
-            ServerEvent::Connect,
-            Client::new(connection, HashMap::new()),
-          )
-          .unwrap();
+        let client = Client::new(connection, HashMap::new());
+        let client_clone = client.clone();
+
+        spawn(move || loop {
+          if !client_clone.connected().unwrap() {
+            break;
+          }
+
+          let packet = client_clone.poll().unwrap();
+          client_clone.callback(packet).unwrap();
+        });
+
+        clone.callback(ServerEvent::Connect, client).unwrap();
       }
     });
 
     Ok(server)
   }
 
-  pub(crate) fn connect_inner(self) -> Result<(Server, TcpListener)> {
+  pub(crate) fn start_inner(self) -> Result<(Server, TcpListener)> {
     let listener = TcpListener::bind(self.bind)?;
 
     Ok((Server::new(self.events), listener))
